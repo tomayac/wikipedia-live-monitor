@@ -1,0 +1,12 @@
+*.tmproj
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.pdf
+*.synctex.gz
+.DS_Store
+.env
+/mediagalleries
+/node_modules
