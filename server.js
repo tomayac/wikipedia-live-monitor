@@ -422,50 +422,53 @@ function monitorWikipedia() {
         article = articleVersionsMap[article];
       }
       // update statistics of the article
-      articles[article].occurrences += 1;
-      articles[article].versions[currentArticle] = true;
-      articles[article].intervals.push(now - articles[article].timestamp);
-      articles[article].timestamp = now;
-      articles[article].changes[now] = {
-        diffUrl: diffUrl,
-        delta: delta,
-        language: language,
-        editor: editor,
-        comment: comment ? comment : ''
-      };
-      // we track editors by languages like so: lang:user. if the same user
-      // edits an article in different languages, she is logged as
-      // lang1:user and lang2:user, but we still consider them the same,
-      // and add them like so: lang1,lang2:user.
-      var editorPresent = false;
-      var presentEditorIndex = 0;
-      var currentEditor = editor.split(':')[1];
-      for (var i = 0, l = articles[article].editors.length; i < l; i++) {
-        if (currentEditor === articles[article].editors[i].split(':')[1]) {
-          editorPresent = true;
-          presentEditorIndex = i;
-          break;
+      if (articles[article]) {
+        articles[article].occurrences += 1;
+        articles[article].versions[currentArticle] = true;
+        articles[article].intervals.push(now - articles[article].timestamp);
+        articles[article].timestamp = now;
+        articles[article].changes[now] = {
+          diffUrl: diffUrl,
+          delta: delta,
+          language: language,
+          editor: editor,
+          comment: comment ? comment : ''
+        };
+
+        // we track editors by languages like so: lang:user. if the same user
+        // edits an article in different languages, she is logged as
+        // lang1:user and lang2:user, but we still consider them the same,
+        // and add them like so: lang1,lang2:user.
+        var editorPresent = false;
+        var presentEditorIndex = 0;
+        var currentEditor = editor.split(':')[1];
+        for (var i = 0, l = articles[article].editors.length; i < l; i++) {
+          if (currentEditor === articles[article].editors[i].split(':')[1]) {
+            editorPresent = true;
+            presentEditorIndex = i;
+            break;
+          }
         }
-      }
-      if (!editorPresent) {
-        articles[article].editors.push(editor);
-      } else {
-        var currentLanguages =
-            articles[article].editors[presentEditorIndex].split(':')[0];
-        if (currentLanguages.indexOf(language) === -1) {
-          currentLanguages = language + ',' + currentLanguages;
+        if (!editorPresent) {
+          articles[article].editors.push(editor);
+        } else {
+          var currentLanguages =
+              articles[article].editors[presentEditorIndex].split(':')[0];
+          if (currentLanguages.indexOf(language) === -1) {
+            currentLanguages = language + ',' + currentLanguages;
+          }
+          articles[article].editors[presentEditorIndex] =
+              currentLanguages + ':' + currentEditor;
         }
-        articles[article].editors[presentEditorIndex] =
-            currentLanguages + ':' + currentEditor;
+        if (articles[article].languages[language]) {
+          articles[article].languages[language] += 1;
+        } else {
+          articles[article].languages[language] = 1;
+        }
+        // check the three breaking news conditions:
+        var breakingNewsConditions =
+            checkBreakingNewsConditions(articles[article]);
       }
-      if (articles[article].languages[language]) {
-        articles[article].languages[language] += 1;
-      } else {
-        articles[article].languages[language] = 1;
-      }
-      // check the three breaking news conditions:
-      var breakingNewsConditions =
-          checkBreakingNewsConditions(articles[article]);
       // reporting WebSockets
       if (USE_WEBSOCKETS) {
         io.sockets.emit('nTimesSeen', {
