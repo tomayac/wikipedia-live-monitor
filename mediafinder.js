@@ -967,7 +967,7 @@ var mediaFinder = {
                 }
                 for (var j = 0, len2 = item.entities.urls.length; j < len2; j++) {
                   var url = item.entities.urls[j].expanded_url;
-                  var host = new Uri(url).heirpart().authority().host();
+                  var host = URL.parse(url).host;
                   if (GLOBAL_config.MEDIA_PLATFORMS.indexOf(host) !== -1) {
                     numberOfUrls++;
                     var timestamp = Date.parse(item.created_at);
