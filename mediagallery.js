@@ -4,6 +4,15 @@ var Canvas = require('canvas');
 var Image = Canvas.Image;
 var request = require('request');
 var Histogram = require('./histogram.js');
+var Twitter = require('node-twitter');
+
+var twitterRestClient = new Twitter.RestClient(
+	process.env.MEDIA_GALLERY_API_KEY,
+	process.env.MEDIA_GALLERY_API_SECRET,
+	process.env.MEDIA_GALLERY_ACCESS_TOKEN,
+	process.env.MEDIA_GALLERY_ACCESS_TOKEN_SECRET
+);
+var recentTweetsBuffer = [];
 
 var window = jsdom().createWindow();
 var document = window.document;
@@ -136,9 +145,12 @@ var illustrator = {
           });
     };
 
-    var successThumbnail = function(image, posterUrl) {
-      illustrator.calculateHistograms(image, posterUrl, mediaItems);
-      preloadFullImage(posterUrl);
+    var successThumbnail = function(image, posterUrl) {	
+      if (!illustrator.calculateHistograms(image, posterUrl, mediaItems)) {
+				errorThumbnail(posterUrl);			
+			} else {
+      	preloadFullImage(posterUrl);
+			}
     };
 
     var errorThumbnail = function(posterUrl) {
@@ -197,7 +209,11 @@ var illustrator = {
     // clear the canvas
     illustrator.ctx.clearRect (0, 0, canvasWidth, canvasHeight);
     // draw the image on the canvas
-    illustrator.ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+		try {
+    	illustrator.ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+		} catch(e) {
+			return false;
+		}
     // calculate the histograms tile-wise
     var sw = ~~(img.width / illustrator.cols);
     var sh = ~~(img.height / illustrator.rows);
@@ -225,6 +241,7 @@ var illustrator = {
       };
     }
     img = null;
+		return true;
   },
 
   calculateDistances: function(mediaItems, clusters, searchTerms, callback) {
@@ -806,7 +823,11 @@ var illustrator = {
         sw = img.width;
         sh = img.width;
       }
-      ctx.drawImage(img, 0, 0, sw, sh, dx, dy + margin, dw, dh);
+			try {
+      	ctx.drawImage(img, 0, 0, sw, sh, dx, dy + margin, dw, dh);
+			} catch(e) {
+				return console.log('Canvas error ' + e);
+			}
       img = null;
       var favicon;
       if (!illustrator.faviconCache[faviconUrl]) {
@@ -816,7 +837,11 @@ var illustrator = {
       } else {
         favicon = illustrator.faviconCache[faviconUrl];
       }
-      ctx.drawImage(favicon, dx + 5, dy + margin + 5);
+			try {
+      	ctx.drawImage(favicon, dx + 5, dy + margin + 5);
+			} catch(e) {
+				return console.log('Canvas error ' + e);				
+			}
       favicon = null;
       ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
       ctx.lineWidth = 1;
@@ -837,10 +862,42 @@ var illustrator = {
           algorithm + '_' + Object.keys(searchTerms)
             .filter(function(term) {
               return !/^http:\/\//.test(term);
-            }) +
+            })[0].replace(/\s/g, '_').replace(/\//g, '_') +
           '_' + Date.now() + '.png';
-      require('fs').writeFile(fileName, buf, function() {
-
+      require('fs').writeFile(fileName, buf, function(err) {
+				if (err) {
+					return console.log('File write error: "' + fileName + '". Error: ' +
+							err);
+				}
+				var url = Object.keys(searchTerms).filter(function(term) {
+          return /^https?:\/\//.test(term);
+        })[0];			 	
+			  // if we have already tweeted the current URL, don't tweet it again
+			  if (recentTweetsBuffer.indexOf(url) !== -1) {
+			    console.log('Already tweeted media gallery about ' + url);
+			    return;
+			  }
+			  // keep the recent tweets buffer at most 10 elements long
+			  recentTweetsBuffer.push(url);
+			  if (recentTweetsBuffer.length > 10) {
+			    recentTweetsBuffer.shift();
+			  }	
+				twitterRestClient.statusesUpdateWithMedia(
+				    {
+			        'status': '#BreakingNews candidate via @WikiLiveMon: ' + url +
+									', ',
+			        'media[]': fileName.replace(/^~/g, '/Users/tsteiner')
+				    },
+				    function(error, result) {
+			        if (error) {
+								console.log('Error: ' + (error.code ? error.code + ' ' +
+										error.message : error.message));
+			        }
+			        if (result) {
+								console.log(result);
+			        }
+				    }
+				);
       });
     });
     mediaItems = null;

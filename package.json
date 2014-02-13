@@ -10,7 +10,8 @@
     "ntwitter": "0.5.x",
     "cheerio": "0.11.x",
     "nodemailer": "0.4.x",
-    "canvas": "1.1.x"
+    "canvas": "1.1.x",
+    "node-twitter": "0.5.1" 
   },
   "engines": {
     "node": "0.10.x",
