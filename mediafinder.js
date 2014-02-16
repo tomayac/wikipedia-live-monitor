@@ -172,6 +172,9 @@ var mediaFinder = {
             if (video.status === 'fail' || video.live_playback) {
               return callback(url);
             }
+            if (!video.url_encoded_fmt_stream_map) {
+              return callback(url);
+            }
             video.sources = decodeStreamMap(video.url_encoded_fmt_stream_map);
             if (!video.sources) {
               return callback(url);
@@ -268,7 +271,7 @@ var mediaFinder = {
           return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
         });
       }
-
+l
       if (micropost) {
         // replace HTML entities
         micropost = replaceHtmlEntities(micropost);
