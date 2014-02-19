@@ -271,7 +271,6 @@ var mediaFinder = {
           return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
         });
       }
-l
       if (micropost) {
         // replace HTML entities
         micropost = replaceHtmlEntities(micropost);
