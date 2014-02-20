@@ -27,6 +27,8 @@ var GLOBAL_config = {
   TWITTER_CONSUMER_SECRET: process.env.TWITTER_CONSUMER_SECRET,
   TWITTER_ACCESS_TOKEN_KEY: process.env.TWITTER_ACCESS_TOKEN_KEY,
   TWITTER_ACCESS_TOKEN_SECRET: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+  FACEBOOK_APP_ID: process.env.FACEBOOK_APP_ID,
+  FACEBOOK_APP_SECRET: process.env.FACEBOOK_APP_SECRET,
   HEADERS: {
     "Accept": "application/json, text/javascript, */*",
     "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.3",
@@ -794,7 +796,9 @@ var mediaFinder = {
         var params = {
           q: query,
           limit: 100,
-          fields: 'comments,type,created_time,name,caption,description,source,picture,id,from,likes,shares'
+          fields: 'comments,type,created_time,name,caption,description,source,picture,id,from,likes,shares',
+          access_token: GLOBAL_config.FACEBOOK_APP_ID + '|' +
+              GLOBAL_config.FACEBOOK_APP_SECRET
         };
         params = querystring.stringify(params);
         var options = {
