@@ -228,7 +228,8 @@ function parseMessage(message, to) {
   editor = language + ':' + editor;
   // diff URL
   var diffUrl = flagsAndDiffUrl[1];
-  if ((diffUrl.indexOf('diff') !== -1) &&
+  if ((diffUrl) &&
+      (diffUrl.indexOf('diff') !== -1) &&
       (diffUrl.indexOf('oldid') !== -1)) {
     var toRev = diffUrl.replace(/.*\?diff=(\d+).*/, '$1');
     var fromRev = diffUrl.replace(/.*&oldid=(\d+).*/, '$1');
