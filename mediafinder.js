@@ -1,3 +1,5 @@
+'use strict';
+
 var querystring = require('querystring');
 var request = require('request');
 var jsdom = require('jsdom');

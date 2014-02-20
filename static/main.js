@@ -1,3 +1,5 @@
+'use strict';
+
 var reset = document.querySelector('#reset');
 reset.addEventListener('click', function(e) {
   document.querySelector('#secondsSinceLastEdit')

@@ -1,3 +1,5 @@
+'use strict';
+
 var Histogram = (function() {
   return {
     getHistogram: function(

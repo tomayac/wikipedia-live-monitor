@@ -1,3 +1,5 @@
+'use strict';
+
 /*
   @author: remy sharp / http://remysharp.com
   @url: http://remysharp.com/2008/04/01/wiki-to-html-using-javascript/

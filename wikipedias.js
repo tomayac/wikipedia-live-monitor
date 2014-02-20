@@ -1,3 +1,5 @@
+'use strict';
+
 // IRC rooms are of the form #lang.wikipedia
 // the list of languages is here:
 // http://meta.wikimedia.org/wiki/List_of_Wikipedias#All_Wikipedias_ordered_by_number_of_articles

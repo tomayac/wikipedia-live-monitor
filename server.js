@@ -1,3 +1,5 @@
+'use strict';
+
 var irc = require('irc');
 var request = require('request');
 var express = require('express');
@@ -245,7 +247,7 @@ function parseMessage(message, to) {
     diffUrl = '';
   }
   // delta
-  deltaAndCommentRegExp = /\(([+-]\d+)\)\s(.*?)$/;
+  var deltaAndCommentRegExp = /\(([+-]\d+)\)\s(.*?)$/;
   var delta = messageComponents[2].replace(deltaAndCommentRegExp, '$1');
   // comment
   var comment = messageComponents[2].replace(deltaAndCommentRegExp, '$2');
@@ -769,7 +771,7 @@ function getLanguageReferences(error, response, body, article) {
       } else {
         if (json.query && json.query.pages) {
           var pages = json.query.pages;
-          for (id in pages) {
+          for (var id in pages) {
             var page = pages[id];
             if (page.langlinks) {
               page.langlinks.forEach(function(langLink) {
@@ -830,7 +832,7 @@ function cleanUpMonitoringLoop() {
     var now = Date.now();
     if (now - articles[key].timestamp > SECONDS_SINCE_LAST_EDIT * 1000) {
       delete articles[key];
-      for (version in articleClusters[key]) {
+      for (var version in articleClusters[key]) {
         delete articleVersionsMap[version];
       }
       delete articleClusters[key];

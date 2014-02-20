@@ -1,3 +1,5 @@
+'use strict';
+
 var mediaFinder = require('./mediafinder.js');
 var jsdom = require('jsdom').jsdom;
 var Canvas = require('canvas');
