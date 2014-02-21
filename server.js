@@ -471,120 +471,121 @@ function monitorWikipedia() {
         // check the three breaking news conditions:
         var breakingNewsConditions =
             checkBreakingNewsConditions(articles[article]);
-      }
-      // reporting WebSockets
-      if (USE_WEBSOCKETS) {
-        io.sockets.emit('nTimesSeen', {
-          article: article,
-          occurrences: articles[article].occurrences,
-          timestamp: new Date(articles[article].timestamp).toString(),
-          editIntervals: articles[article].intervals,
-          editors: articles[article].editors,
-          languages: articles[article].languages,
-          versions: articles[article].versions,
-          changes: articles[article].changes,
-          conditions: {
-            breakingNewsThreshold:
-                breakingNewsConditions.breakingNewsThresholdReached,
-            secondsBetweenEdits:
-                breakingNewsConditions.allEditsInShortDistances,
-            numberOfConcurrentEditors:
-                breakingNewsConditions.numberOfEditorsReached
-          }
-        });
-      }
-      // reporting console
-      if (VERBOUS) {
-        console.log('[ ! ] ' + articles[article].occurrences + ' ' +
-            'times seen: "' + article + '". ' +
-            'Timestamp: ' + new Date(articles[article].timestamp) +
-            '. Edit intervals: ' + articles[article].intervals.toString()
-            .replace(/(\d+),?/g, '$1ms ').trim() + '. ' +
-            'Parallel editors: ' + articles[article].editors.length +
-            '. Editors: ' + articles[article].editors + '. ' +
-            'Languages: ' + JSON.stringify(articles[article].languages));
-      }
 
-      // check if all three breaking news conditions are fulfilled at once
-      if ((breakingNewsConditions.breakingNewsThresholdReached) &&
-          (breakingNewsConditions.allEditsInShortDistances) &&
-          (breakingNewsConditions.numberOfEditorsReached)) {
-        // search for all article titles in social networks
-        var searchTerms = {};
-        // use the article title as search term
-        searchTerms[article.split(':')[1].replace(/_/g, ' ')] = true;
-        // use the article URL as search term
-        searchTerms[createWikipediaUrl(article)] = true;
-        for (var key in articles[article].versions) {
-          // use the article URL as search term
-          var wikipediaUrl = createWikipediaUrl(key);
-          searchTerms[wikipediaUrl] = true;
-          // use the article title as search term
-          var articleTitle = key.split(':')[1].replace(/_/g, ' ');
-          if (!searchTerms[articleTitle]) {
-            searchTerms[articleTitle] = true;
-          }
-        }
-        illustrator(searchTerms, function(mediaGalleryHtml) {
-          socialNetworkSearch(searchTerms, function(socialNetworksResults) {
-            if (USE_WEBSOCKETS) {
-              if (articles[article]) {
-                io.sockets.emit('breakingNewsCandidate', {
-                  article: article,
-                  occurrences: articles[article].occurrences,
-                  timestamp: new Date(articles[article].timestamp).toString(),
-                  editIntervals: articles[article].intervals,
-                  editors: articles[article].editors,
-                  languages: articles[article].languages,
-                  versions: articles[article].versions,
-                  changes: articles[article].changes,
-                  conditions: {
-                    breakingNewsThreshold:
-                        breakingNewsConditions.breakingNewsThresholdReached,
-                    secondsBetweenEdits:
-                        breakingNewsConditions.allEditsInShortDistances,
-                    numberOfConcurrentEditors:
-                        breakingNewsConditions.numberOfEditorsReached
-                  },
-                  mediaGalleryHtml: mediaGalleryHtml,
-                  socialNetworksResults: socialNetworksResults
-                });
-                if (TWEET_BREAKING_NEWS_CANDIDATES) {
-                  // the actual breaking news article language version may
-                  // vary, however, to avoid over-tweeting, tweet only
-                  // once, i.e., look up the main article in the
-                  // articleVersionsMap
-                  tweet(
-                      articleVersionsMap[article],
-                      articles[article].occurrences,
-                      articles[article].editors.length,
-                      Object.keys(articles[article].languages).length,
-                      socialNetworksResults);
-                }
-                if (EMAIL_BREAKING_NEWS_CANDIDATES) {
-                  email(articleVersionsMap[article], socialNetworksResults);
-                }
-                // reporting console
-                if (VERBOUS) {
-                  console.log('[ ★ ] Breaking news candidate: "' +
-                      article + '". ' +
-                      articles[article].occurrences + ' ' +
-                      'times seen. ' +
-                      'Timestamp: ' +
-                      new Date(articles[article].timestamp) +
-                      '. Edit intervals: ' +
-                      articles[article].intervals.toString()
-                      .replace(/(\d+),?/g, '$1ms ').trim() + '. ' +
-                      'Number of editors: ' +
-                      articles[article].editors.length + '. ' +
-                      'Editors: ' + articles[article].editors + '. ' +
-                      'Languages: ' +
-                      JSON.stringify(articles[article].languages));
-                }
-              }
+        // reporting WebSockets
+        if (USE_WEBSOCKETS) {
+          io.sockets.emit('nTimesSeen', {
+            article: article,
+            occurrences: articles[article].occurrences,
+            timestamp: new Date(articles[article].timestamp).toString(),
+            editIntervals: articles[article].intervals,
+            editors: articles[article].editors,
+            languages: articles[article].languages,
+            versions: articles[article].versions,
+            changes: articles[article].changes,
+            conditions: {
+              breakingNewsThreshold:
+                  breakingNewsConditions.breakingNewsThresholdReached,
+              secondsBetweenEdits:
+                  breakingNewsConditions.allEditsInShortDistances,
+              numberOfConcurrentEditors:
+                  breakingNewsConditions.numberOfEditorsReached
             }
           });
-        })
+        }
+        // reporting console
+        if (VERBOUS) {
+          console.log('[ ! ] ' + articles[article].occurrences + ' ' +
+              'times seen: "' + article + '". ' +
+              'Timestamp: ' + new Date(articles[article].timestamp) +
+              '. Edit intervals: ' + articles[article].intervals.toString()
+              .replace(/(\d+),?/g, '$1ms ').trim() + '. ' +
+              'Parallel editors: ' + articles[article].editors.length +
+              '. Editors: ' + articles[article].editors + '. ' +
+              'Languages: ' + JSON.stringify(articles[article].languages));
+        }
+
+        // check if all three breaking news conditions are fulfilled at once
+        if ((breakingNewsConditions.breakingNewsThresholdReached) &&
+            (breakingNewsConditions.allEditsInShortDistances) &&
+            (breakingNewsConditions.numberOfEditorsReached)) {
+          // search for all article titles in social networks
+          var searchTerms = {};
+          // use the article title as search term
+          searchTerms[article.split(':')[1].replace(/_/g, ' ')] = true;
+          // use the article URL as search term
+          searchTerms[createWikipediaUrl(article)] = true;
+          for (var key in articles[article].versions) {
+            // use the article URL as search term
+            var wikipediaUrl = createWikipediaUrl(key);
+            searchTerms[wikipediaUrl] = true;
+            // use the article title as search term
+            var articleTitle = key.split(':')[1].replace(/_/g, ' ');
+            if (!searchTerms[articleTitle]) {
+              searchTerms[articleTitle] = true;
+            }
+          }
+          illustrator(searchTerms, function(mediaGalleryHtml) {
+            socialNetworkSearch(searchTerms, function(socialNetworksResults) {
+              if (USE_WEBSOCKETS) {
+                if (articles[article]) {
+                  io.sockets.emit('breakingNewsCandidate', {
+                    article: article,
+                    occurrences: articles[article].occurrences,
+                    timestamp: new Date(articles[article].timestamp).toString(),
+                    editIntervals: articles[article].intervals,
+                    editors: articles[article].editors,
+                    languages: articles[article].languages,
+                    versions: articles[article].versions,
+                    changes: articles[article].changes,
+                    conditions: {
+                      breakingNewsThreshold:
+                          breakingNewsConditions.breakingNewsThresholdReached,
+                      secondsBetweenEdits:
+                          breakingNewsConditions.allEditsInShortDistances,
+                      numberOfConcurrentEditors:
+                          breakingNewsConditions.numberOfEditorsReached
+                    },
+                    mediaGalleryHtml: mediaGalleryHtml,
+                    socialNetworksResults: socialNetworksResults
+                  });
+                  if (TWEET_BREAKING_NEWS_CANDIDATES) {
+                    // the actual breaking news article language version may
+                    // vary, however, to avoid over-tweeting, tweet only
+                    // once, i.e., look up the main article in the
+                    // articleVersionsMap
+                    tweet(
+                        articleVersionsMap[article],
+                        articles[article].occurrences,
+                        articles[article].editors.length,
+                        Object.keys(articles[article].languages).length,
+                        socialNetworksResults);
+                  }
+                  if (EMAIL_BREAKING_NEWS_CANDIDATES) {
+                    email(articleVersionsMap[article], socialNetworksResults);
+                  }
+                  // reporting console
+                  if (VERBOUS) {
+                    console.log('[ ★ ] Breaking news candidate: "' +
+                        article + '". ' +
+                        articles[article].occurrences + ' ' +
+                        'times seen. ' +
+                        'Timestamp: ' +
+                        new Date(articles[article].timestamp) +
+                        '. Edit intervals: ' +
+                        articles[article].intervals.toString()
+                        .replace(/(\d+),?/g, '$1ms ').trim() + '. ' +
+                        'Number of editors: ' +
+                        articles[article].editors.length + '. ' +
+                        'Editors: ' + articles[article].editors + '. ' +
+                        'Languages: ' +
+                        JSON.stringify(articles[article].languages));
+                  }
+                }
+              }
+            });
+          })
+        }
       }
     }
   });
