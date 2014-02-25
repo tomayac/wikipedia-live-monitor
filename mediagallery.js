@@ -51,6 +51,9 @@ var illustrator = {
     var clusters = [];
     illustrator.canvas = new Canvas(100, 100);
     illustrator.ctx = illustrator.canvas.getContext('2d');
+    illustrator.ctx.patternQuality = 'best';
+    illustrator.ctx.filter = 'best';
+    illustrator.ctx.antialias = 'subpixel';
 
     var returnSearchResults = function(searchResultsDelivered) {
       for (var term in searchResultsDelivered) {
