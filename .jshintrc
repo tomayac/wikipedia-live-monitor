@@ -1,0 +1,20 @@
+{
+  "bitwise": false,
+  "curly": true,
+  "indent": 2,
+  "immed": true,
+  "latedef": "nofunc",
+  "loopfunc": true,
+  "maxlen": 80,
+  "newcap": false,
+  "node": true,
+  "noempty": true,
+  "nonbsp": true,
+  "nonew": true,
+  "quotmark": "single",
+  "shadow": true,
+  "strict": true,
+  "trailing": true,
+  "undef": true,
+  "unused": true
+}

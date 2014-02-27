@@ -9,9 +9,8 @@ var server = http.createServer(app);
 var io = require('socket.io').listen(server);
 var $ = require('cheerio');
 var twitter = require('ntwitter');
-var nodemailer = require("nodemailer");
+var nodemailer = require('nodemailer');
 var socialNetworkSearch = require('./social-network-search.js');
-var mediaFinder = require('./mediafinder.js');
 var wiki2html = require('./wiki2html.js');
 var wikipedias = require('./wikipedias.js');
 var illustrator = require('./mediagallery.js');
@@ -36,7 +35,8 @@ var MONITOR_REALLY_LONG_TAIL_WIKIPEDIAS = true;
 var MONITOR_WIKIDATA = true;
 
 // required for Wikipedia API
-var USER_AGENT = 'Wikipedia Live Monitor * IRC nick: wikipedia-live-monitor * Contact: tomac(a)google.com.';
+var USER_AGENT = 'Wikipedia Live Monitor * IRC nick: wikipedia-live-monitor *' +
+    ' Contact: tomac(a)google.com.';
 
 // an article cluster is thrown out of the monitoring loop if its last edit is
 // longer ago than SECONDS_SINCE_LAST_EDIT seconds
@@ -77,8 +77,8 @@ if (EMAIL_BREAKING_NEWS_CANDIDATES) {
   var smtpTransport = nodemailer.createTransport('SMTP', {
     service: 'Gmail',
     auth: {
-        user: process.env.EMAIL_ADDRESS,
-        pass: process.env.EMAIL_PASSWORD
+      user: process.env.EMAIL_ADDRESS,
+      pass: process.env.EMAIL_PASSWORD
     }
   });
   var recentEmailsBuffer = [];
@@ -92,7 +92,7 @@ if (TWEET_BREAKING_NEWS_CANDIDATES) {
     access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
   });
 
-  twit.verifyCredentials(function(err, data) {
+  twit.verifyCredentials(function(err) {
     if (err) {
       console.warn('Twitter authentication error: ' + err);
     }
@@ -134,17 +134,18 @@ if (MONITOR_WIKIDATA) {
 }
 
 var client = new irc.Client(
-    IRC_SERVER,
-    IRC_NICK,
-    {
-      userName: IRC_NICK,
-      realName: IRC_REAL_NAME_AND_CONTACT,
-      floodProtection: true,
-      showErrors: true,
-      stripColors: true
-    });
+  IRC_SERVER,
+  IRC_NICK,
+  {
+    userName: IRC_NICK,
+    realName: IRC_REAL_NAME_AND_CONTACT,
+    floodProtection: true,
+    showErrors: true,
+    stripColors: true
+  }
+);
 
-client.addListener('registered', function(message) {
+client.addListener('registered', function() {
   console.log('Connected to IRC server ' + IRC_SERVER);
   // connect to IRC channels
   IRC_CHANNELS.forEach(function(channel) {
@@ -154,29 +155,29 @@ client.addListener('registered', function(message) {
 });
 
 // fired whenever the client connects to an IRC channel
-client.addListener('join', function(channel, nick, message) {
+client.addListener('join', function(channel, nick) {
   console.log(nick + ' joined channel ' + channel);
 });
 // fired whenever someone parts a channel
-client.addListener('part', function(channel, nick, reason, message) {
+client.addListener('part', function(channel, nick, reason) {
   console.log('User ' + nick + ' has left ' + channel + ' (' + reason + ')');
 });
 // fired whenever someone quits the IRC server
-client.addListener('quit', function(nick, reason, channels, message) {
+client.addListener('quit', function(nick, reason, channels) {
   console.log('User ' + nick + ' has quit ' + channels + ' (' + reason + ')');
 });
 // fired whenever someone sends a notice
-client.addListener('notice', function(nick, to, text, message) {
+client.addListener('notice', function(nick, to, text) {
   console.log('Notice from ' + (nick === undefined? 'server' : nick) + ' to ' +
       to +  ': ' + text);
 });
 // fired whenever someone gets kicked from a channel
-client.addListener('kick', function(channel, nick, by, reason, message) {
+client.addListener('kick', function(channel, nick, by, reason) {
   console.warn('User ' + (by === undefined? 'server' : by) + ' has kicked ' +
       nick + ' from ' + channel +  ' (' + reason + ')');
 });
 // fired whenever someone is killed from the IRC server
-client.addListener('kill', function(nick, reason, channels, message) {
+client.addListener('kill', function(nick, reason, channels) {
   console.warn('User ' + nick + ' was killed from ' + channels +  ' (' +
       reason + ')');
 });
@@ -194,7 +195,9 @@ var articleVersionsMap = {};
 function parseMessage(message, to) {
   // get the editor's username or IP address
   // the IRC log format is as follows (with color codes removed):
-  // rc-pmtpa: [[Juniata River]] http://en.wikipedia.org/w/index.php?diff=516269072&oldid=514659029 * Johanna-Hypatia * (+67) Category:Place names of Native American origin in Pennsylvania
+  // rc-pmtpa: [[Juniata River]] http://en.wikipedia.org/w/index.php?diff=
+  // 516269072&oldid=514659029 * Johanna-Hypatia * (+67) Category:Place names
+  // of Native American origin in Pennsylvania
   var messageComponents = message.split(' * ');
   var articleRegExp = /\[\[(.+?)\]\].+?$/;
   var article = messageComponents[0].replace(articleRegExp, '$1');
@@ -211,7 +214,7 @@ function parseMessage(message, to) {
   // (the 'b' is actually uppercase in IRC)
   //
   // bots must identify themselves by prefixing or suffixing their
-  // username with "bot".
+  // username with 'bot'.
   // http://en.wikipedia.org/wiki/Wikipedia:Bot_policy#Bot_accounts
   var flagsAndDiffUrl =
       messageComponents[0].replace('[[' + article + ']] ', '').split(' ');
@@ -225,7 +228,7 @@ function parseMessage(message, to) {
   }
   // normalize article titles to follow the Wikipedia URLs
   article = article.replace(/\s/g, '_');
-  // the language format follows the IRC room format: "#language.project"
+  // the language format follows the IRC room format: '#language.project'
   var language = to.substring(1, to.indexOf('.'));
   editor = language + ':' + editor;
   // diff URL
@@ -339,12 +342,11 @@ function monitorWikipedia() {
     // get language references via the Wikipedia API
     article = language + ':' + article;
     request.get({
-          uri: languageClusterUrl,
-          headers: {'User-Agent': USER_AGENT}
-        },
-        function(error, response, body) {
-          getLanguageReferences(error, response, body, article);
-        });
+        uri: languageClusterUrl,
+        headers: {'User-Agent': USER_AGENT}
+      }, function(error, response, body) {
+        getLanguageReferences(error, response, body, article);
+      });
 
     // TODO
     // get out-links to other articles mentioned in the current article
@@ -357,12 +359,11 @@ function monitorWikipedia() {
     // get the diff URL and check if we have notable or trivial changes
     if (diffUrl) {
       request.get({
-            uri: diffUrl,
-            headers: {'User-Agent': USER_AGENT}
-          },
-          function(error, response, body) {
-            getDiffUrl(error, response, body, article, now);
-          });
+          uri: diffUrl,
+          headers: {'User-Agent': USER_AGENT}
+        }, function(error, response, body) {
+          getDiffUrl(error, response, body, article, now);
+        });
     }
 
     // new article
@@ -584,7 +585,7 @@ function monitorWikipedia() {
                 }
               }
             });
-          })
+          });
         }
       }
     }
@@ -606,7 +607,7 @@ function getDiffUrl(error, response, body, article, now) {
       var addedLines = parsedHtml('.diff-addedline');
       var diffTexts = [];
       var diffConcepts = [];
-      addedLines.each(function(i, elem) {
+      addedLines.each(function() {
         var text = $(this).text().trim();
         var concepts = extractWikiConcepts(text,
             articles[article].changes[now].language);
@@ -631,39 +632,10 @@ function getDiffUrl(error, response, body, article, now) {
 
 // removes HTML tags from text (like the PHP function with the same name)
 function strip_tags (input, allowed) {
-  // http://kevin.vanzonneveld.net
-  // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-  // +   improved by: Luke Godfrey
-  // +      input by: Pul
-  // +   bugfixed by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-  // +   bugfixed by: Onno Marsman
-  // +      input by: Alex
-  // +   bugfixed by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-  // +      input by: Marc Palau
-  // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-  // +      input by: Brett Zamir (http://brett-zamir.me)
-  // +   bugfixed by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-  // +   bugfixed by: Eric Nagel
-  // +      input by: Bobby Drake
-  // +   bugfixed by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-  // +   bugfixed by: Tomasz Wesolowski
-  // +      input by: Evertjan Garretsen
-  // +    revised by: Rafał Kukawski (http://blog.kukawski.pl/)
-  // *     example 1: strip_tags('<p>Kevin</p> <br /><b>van</b> <i>Zonneveld</i>', '<i><b>');
-  // *     returns 1: 'Kevin <b>van</b> <i>Zonneveld</i>'
-  // *     example 2: strip_tags('<p>Kevin <img src="someimage.png" onmouseover="someFunction()">van <i>Zonneveld</i></p>', '<p>');
-  // *     returns 2: '<p>Kevin van Zonneveld</p>'
-  // *     example 3: strip_tags("<a href='http://kevin.vanzonneveld.net'>Kevin van Zonneveld</a>", "<a>");
-  // *     returns 3: '<a href='http://kevin.vanzonneveld.net'>Kevin van Zonneveld</a>'
-  // *     example 4: strip_tags('1 < 5 5 > 1');
-  // *     returns 4: '1 < 5 5 > 1'
-  // *     example 5: strip_tags('1 <br/> 1');
-  // *     returns 5: '1  1'
-  // *     example 6: strip_tags('1 <br/> 1', '<br>');
-  // *     returns 6: '1  1'
-  // *     example 7: strip_tags('1 <br/> 1', '<br><br/>');
-  // *     returns 7: '1 <br/> 1'
-  allowed = (((allowed || "") + "").toLowerCase().match(/<[a-z][a-z0-9]*>/g) || []).join(''); // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
+  // making sure the allowed arg is a string containing only tags in lowercase
+  // (<a><b><c>)
+  allowed = (((allowed || '') + '').toLowerCase()
+      .match(/<[a-z][a-z0-9]*>/g) || []).join('');
   var tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,
     commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
   return input.replace(commentsAndPhpTags, '').replace(tags, function ($0, $1) {
@@ -948,8 +920,8 @@ function email(article, microposts) {
       }
     }
     html += '</ul>';
+    var socialHtml = '';
     if (microposts) {
-      var socialHtml = '';
       var now = Date.now();
       for (var term in microposts) {
         // only append the term if microposts exist. need to iterate over all
@@ -1008,12 +980,12 @@ function email(article, microposts) {
 
   // setup e-mail data with unicode symbols
   var mailOptions = {
-      from: 'Wikipedia Live Monitor <' + process.env.EMAIL_ADDRESS + '>',
-      to: process.env.EMAIL_RECEIVER,
-      subject: 'Breaking News Candidate: ' + decodeURIComponent(wikipediaUrl),
-      generateTextFromHTML: true,
-      forceEmbeddedImages: true,
-      html: generateHtmlMail()
+    from: 'Wikipedia Live Monitor <' + process.env.EMAIL_ADDRESS + '>',
+    to: process.env.EMAIL_RECEIVER,
+    subject: 'Breaking News Candidate: ' + decodeURIComponent(wikipediaUrl),
+    generateTextFromHTML: true,
+    forceEmbeddedImages: true,
+    html: generateHtmlMail()
   };
   // send mail with defined transport object
   smtpTransport.sendMail(mailOptions, function(error, response) {
@@ -1056,7 +1028,9 @@ function tweet(article, occurrences, editors, languages, microposts) {
     }
   }
   var shuffle = function(o) {
-    for(var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+    /* jshint maxlen:false,noempty:false */
+    for (var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x) {}
+    /* jshint maxlen:80 */
     return o;
   };
   socialUpdates = shuffle(socialUpdates);
@@ -1066,11 +1040,15 @@ function tweet(article, occurrences, editors, languages, microposts) {
       ', Langs: ' + languages +
       ', Stories: ';
   if (socialUpdates.length) {
+    /* jshint maxlen:false */
     var urlRegEx = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/ig;
+    /* jshint maxlen:80 */
     var pseudoShortLink = 'http://t.co/' +
         new Array(TWITTER_SHORT_URL_LENGTH - 11).join('x');
     var previewTweet = text.replace(urlRegEx, pseudoShortLink);
+    /* jshint maxlen:false */
     for (var i = previewTweet.length, j = 0, len = socialUpdates.length; i < 138 && j < len; i += TWITTER_SHORT_URL_LENGTH + 2, j++) {
+    /* jshint maxlen:80 */
       previewTweet += (j > 0 ?
           ', ' + socialUpdates[j].replace(urlRegEx, pseudoShortLink) :
           socialUpdates[j].replace(urlRegEx, pseudoShortLink));
@@ -1081,7 +1059,7 @@ function tweet(article, occurrences, editors, languages, microposts) {
     text += 'N/A]';
   }
   console.log('Tweeting: ' + text);
-  twit.updateStatus(text, function (err, data) {
+  twit.updateStatus(text, function (err) {
     if (err) {
       console.warn('Tweet error: ' + err);
     }

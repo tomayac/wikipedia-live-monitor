@@ -43,19 +43,19 @@ var socialNetworkSearch = function(terms, callback) {
     },
     Twitter: function(term) {
       twit.search(
-          encodeURIComponent('"' + term + '" -"RT "'),
-          {
-            rpp: MAX_RESULTS,
-            result_type: 'recent',
-            include_entities: true,
-          },
-          function(err, body) {
-        if ((!err) && (body.statuses) && (body.statuses.length)) {
-          retrieveTwitterResults(body.statuses, networksDelivered, term);
-        } else {
-          retrieveTwitterResults({}, networksDelivered, term);
+        encodeURIComponent('"' + term + '" -"RT "'),
+        {
+          rpp: MAX_RESULTS,
+          result_type: 'recent',
+          include_entities: true,
+        }, function(err, body) {
+          if ((!err) && (body.statuses) && (body.statuses.length)) {
+            retrieveTwitterResults(body.statuses, networksDelivered, term);
+          } else {
+            retrieveTwitterResults({}, networksDelivered, term);
+          }
         }
-      });
+      );
     },
     Facebook: function(term) {
       var url = 'https://graph.facebook.com/search?';
@@ -85,7 +85,6 @@ var socialNetworkSearch = function(terms, callback) {
       var curatedResults = [];
       results.forEach(function(result) {
         var user = result.user.screen_name;
-        var realname = result.user.name;
         var micropost = result.text;
         var avatar = result.user.profile_image_url_https;
         var creationDate = result.created_at;
@@ -190,7 +189,7 @@ var socialNetworkSearch = function(terms, callback) {
           return;
         }
         var user = result.from.name;
-        var micropost = ''
+        var micropost = '';
         if (result.message) {
           micropost += result.message;
         }
@@ -239,7 +238,7 @@ var socialNetworkSearch = function(terms, callback) {
       }
     }
     callback(networksDelivered);
-  }
+  };
 
   var networksDelivered = {};
   for (var term in terms) {
