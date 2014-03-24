@@ -40,7 +40,7 @@ var USER_AGENT = 'Wikipedia Live Monitor * IRC nick: wikipedia-live-monitor *' +
 
 // an article cluster is thrown out of the monitoring loop if its last edit is
 // longer ago than SECONDS_SINCE_LAST_EDIT seconds
-var SECONDS_SINCE_LAST_EDIT = 240;
+var SECONDS_SINCE_LAST_EDIT = 300;
 
 // an article cluster may have at max SECONDS_BETWEEN_EDITS seconds in between
 // edits in order to be regarded a breaking news candidate
@@ -52,7 +52,7 @@ var BREAKING_NEWS_THRESHOLD = 5;
 
 // an article cluster must be edited by at least NUMBER_OF_CONCURRENT_EDITORS
 // concurrent editors before it is considered a breaking news candidate
-var NUMBER_OF_CONCURRENT_EDITORS = 2;
+var NUMBER_OF_CONCURRENT_EDITORS = 3;
 
 // Wikipedia edit bots can account for many false positives, so usually we want
 // to discard them
@@ -67,7 +67,7 @@ var IRC_REAL_NAME_AND_CONTACT = 'Thomas Steiner (tomac@google.com)';
 var TWITTER_SHORT_URL_LENGTH = 23;
 
 // if enabled, breaking news candidates will be tweeted
-var TWEET_BREAKING_NEWS_CANDIDATES = false;
+var TWEET_BREAKING_NEWS_CANDIDATES = true;
 
 // if enabled, breaking news candidates will be emailed
 var EMAIL_BREAKING_NEWS_CANDIDATES = false;
@@ -514,12 +514,7 @@ function monitorWikipedia() {
           var searchTerms = {};
           // use the article title as search term
           searchTerms[article.split(':')[1].replace(/_/g, ' ')] = true;
-          // use the article URL as search term
-          searchTerms[createWikipediaUrl(article)] = true;
           for (var key in articles[article].versions) {
-            // use the article URL as search term
-            var wikipediaUrl = createWikipediaUrl(key);
-            searchTerms[wikipediaUrl] = true;
             // use the article title as search term
             var articleTitle = key.split(':')[1].replace(/_/g, ' ');
             if (!searchTerms[articleTitle]) {
