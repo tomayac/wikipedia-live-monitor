@@ -62,7 +62,9 @@ var socialNetworkSearch = function(terms, callback) {
       var q = 'q=' + encodeURIComponent('"' + term + '"');
       var type = '&type=post';
       var limit = '&limit=' + MAX_RESULTS;
-      url += q + type + limit;
+      var acccessToken = '&access_token=' + process.env.FACEBOOK_APP_ID + '|' +
+          process.env.FACEBOOK_APP_SECRET;
+      url += q + type + limit + acccessToken;
       request.get(url, function(error, response, body) {
         if (!error && response.statusCode == 200) {
           var json;
