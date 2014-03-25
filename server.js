@@ -521,7 +521,8 @@ function monitorWikipedia() {
               searchTerms[articleTitle] = true;
             }
           }
-          illustrator(searchTerms, function(mediaGalleryHtml) {
+          var wikipediaUrl = createWikipediaUrl(articleVersionsMap[article]);
+          illustrator(searchTerms, wikipediaUrl, function(mediaGalleryHtml) {
             socialNetworkSearch(searchTerms, function(socialNetworksResults) {
               if (USE_WEBSOCKETS) {
                 if (articles[article]) {
@@ -551,14 +552,15 @@ function monitorWikipedia() {
                     // once, i.e., look up the main article in the
                     // articleVersionsMap
                     tweet(
-                        articleVersionsMap[article],
+                        wikipediaUrl,
                         articles[article].occurrences,
                         articles[article].editors.length,
                         Object.keys(articles[article].languages).length,
                         socialNetworksResults);
                   }
                   if (EMAIL_BREAKING_NEWS_CANDIDATES) {
-                    email(articleVersionsMap[article], socialNetworksResults);
+                    email(articleVersionsMap[article], wikipediaUrl,
+                        socialNetworksResults);
                   }
                   // reporting console
                   if (VERBOUS) {
@@ -831,8 +833,7 @@ function createWikipediaUrl(article) {
   }
 }
 
-function email(article, microposts) {
-  var wikipediaUrl = createWikipediaUrl(article);
+function email(article, wikipediaUrl, microposts) {
   // if we have already emailed the current URL, don't email it again
   if (recentEmailsBuffer.indexOf(wikipediaUrl) !== -1) {
     console.log('Already emailed about ' + wikipediaUrl);
@@ -993,8 +994,7 @@ function email(article, microposts) {
   });
 }
 
-function tweet(article, occurrences, editors, languages, microposts) {
-  var wikipediaUrl = createWikipediaUrl(article);
+function tweet(wikipediaUrl, occurrences, editors, languages, microposts) {
   // if we have already tweeted the current URL, don't tweet it again
   if (recentTweetsBuffer.indexOf(wikipediaUrl) !== -1) {
     console.log('Already tweeted about ' + wikipediaUrl);

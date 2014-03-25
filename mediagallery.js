@@ -46,7 +46,7 @@ var illustrator = {
   ctx: null,
   faviconCache: {},
 
-  searchMediaItems: function(searchTerms, callback) {
+  searchMediaItems: function(searchTerms, wikipediaUrl, callback) {
     var mediaItems = {};
     var clusters = [];
     illustrator.canvas = new Canvas(100, 100);
@@ -91,7 +91,7 @@ var illustrator = {
         }
       }
       illustrator.retrieveMediaItems(result, mediaItems, clusters, searchTerms,
-          callback);
+          wikipediaUrl, callback);
     };
 
     var searchResultsDelivered = {};
@@ -112,7 +112,7 @@ var illustrator = {
   },
 
   retrieveMediaItems: function(results, mediaItems, clusters, searchTerms,
-      callback) {
+      wikipediaUrl, callback) {
     var checkMediaItemStatuses = function(target) {
       for (var key in mediaItems) {
         if (mediaItems[key].status !== target) {
@@ -166,7 +166,7 @@ var illustrator = {
       delete mediaItems[posterUrl];
       if (checkMediaItemStatuses('loaded')) {
         illustrator.calculateDistances(mediaItems, clusters, searchTerms,
-            callback);
+            wikipediaUrl, callback);
       }
     };
 
@@ -179,7 +179,7 @@ var illustrator = {
       };
       if (checkMediaItemStatuses('loaded')) {
         illustrator.calculateDistances(mediaItems, clusters, searchTerms,
-            callback);
+            wikipediaUrl, callback);
       }
     };
 
@@ -187,7 +187,7 @@ var illustrator = {
       delete mediaItems[posterUrl];
       if (checkMediaItemStatuses('loaded')) {
         illustrator.calculateDistances(mediaItems, clusters, searchTerms,
-            callback);
+            wikipediaUrl, callback);
       }
     };
 
@@ -251,7 +251,8 @@ var illustrator = {
     return true;
   },
 
-  calculateDistances: function(mediaItems, clusters, searchTerms, callback) {
+  calculateDistances: function(mediaItems, clusters, searchTerms, wikipediaUrl,
+      callback) {
     var keys = Object.keys(mediaItems);
     var len = keys.length;
     if (!len) {
@@ -320,11 +321,11 @@ var illustrator = {
       }
     }
     illustrator.filterForMinMaxAgeAndVisibility(mediaItems, clusters,
-        searchTerms, callback);
+        searchTerms, wikipediaUrl, callback);
   },
 
   filterForMinMaxAgeAndVisibility: function(mediaItems, clusters, searchTerms,
-      callback) {
+      wikipediaUrl, callback) {
     var now = Date.now();
     for (var key in mediaItems) {
       var mediaItem = mediaItems[key];
@@ -340,10 +341,12 @@ var illustrator = {
         mediaItem.considerMediaItem = false;
       }
     }
-    illustrator.clusterMediaItems(mediaItems, clusters, searchTerms, callback);
+    illustrator.clusterMediaItems(mediaItems, clusters, searchTerms,
+        wikipediaUrl, callback);
   },
 
-  clusterMediaItems: function(mediaItems, clusters, searchTerms, callback) {
+  clusterMediaItems: function(mediaItems, clusters, searchTerms, wikipediaUrl,
+      callback) {
     var calculateMinimumSimilarTiles = function() {
       return Math.ceil(illustrator.rows * illustrator.cols / 3);
     };
@@ -410,10 +413,12 @@ var illustrator = {
     if (clusters.length === 0) {
       return callback(false);
     }
-    illustrator.mergeClusterData(mediaItems, clusters, searchTerms, callback);
+    illustrator.mergeClusterData(mediaItems, clusters, searchTerms,
+        wikipediaUrl, callback);
   },
 
-  mergeClusterData: function(mediaItems, clusters, searchTerms, callback) {
+  mergeClusterData: function(mediaItems, clusters, searchTerms, wikipediaUrl,
+      callback) {
     var calculateDimensions = function(mediaItem) {
       // always prefer video over photo, so set the dimensions of videos
       // to Infinity, which overrules even high-res photos
@@ -465,7 +470,8 @@ var illustrator = {
         views: views
       };
     });
-    illustrator.rankClusters(mediaItems, clusters, searchTerms, callback);
+    illustrator.rankClusters(mediaItems, clusters, searchTerms, wikipediaUrl,
+        callback);
   },
 
   rankingFormulas: {
@@ -506,16 +512,17 @@ var illustrator = {
     }
   },
 
-  rankClusters: function(mediaItems, clusters, searchTerms, callback) {
+  rankClusters: function(mediaItems, clusters, searchTerms, wikipediaUrl,
+      callback) {
     clusters.sort(illustrator.rankingFormulas.popularity.func);
     illustrator.createMediaGallery(mediaItems, clusters, 'strictOrder',
-        searchTerms, callback);
+        searchTerms, wikipediaUrl, callback);
     illustrator.createMediaGallery(mediaItems, clusters, 'looseOrder',
-        searchTerms, callback);
+        searchTerms, wikipediaUrl, callback);
   },
 
   createMediaGallery: function(mediaItems, clusters, algorithm, searchTerms,
-        callback) {
+        wikipediaUrl, callback) {
     var selectedMediaItems = [];
     clusters.forEach(function(cluster, counter) {
       if (counter >= illustrator.mediaGallerySize) {
@@ -526,14 +533,15 @@ var illustrator = {
     });
     clusters = null;
     illustrator.mediaGalleryAlgorithms[algorithm]
-        .func(selectedMediaItems, mediaItems, algorithm, searchTerms, callback);
+        .func(selectedMediaItems, mediaItems, algorithm, searchTerms,
+            wikipediaUrl, callback);
   },
 
   mediaGalleryAlgorithms: {
     strictOrder: {
       name: 'Strict order, equal size',
       func: function(selectedMediaItems, mediaItems, algorithm, searchTerms,
-          callback) {
+          wikipediaUrl, callback) {
         if (selectedMediaItems.length === 0) {
           return callback(false);
         }
@@ -647,7 +655,7 @@ var illustrator = {
         }
         mediaGallery.style.width = width + 'px';
         illustrator.createMediaGalleryDump(mediaItems, divs, width, height,
-            algorithm, searchTerms);
+            algorithm, searchTerms, wikipediaUrl);
         selectedMediaItems = null;
         return callback(container.innerHTML);
       }
@@ -656,7 +664,7 @@ var illustrator = {
     looseOrder: {
       name: 'Loose order, varying size',
       func: function(selectedMediaItems, mediaItems, algorithm, searchTerms,
-          callback) {
+          wikipediaUrl, callback) {
         if (selectedMediaItems.length === 0) {
           return callback(false);
         }
@@ -796,7 +804,7 @@ var illustrator = {
         var container = document.createElement('div');
         container.appendChild(mediaGallery);
         illustrator.createMediaGalleryDump(mediaItems, divs, width, height,
-            algorithm, searchTerms);
+            algorithm, searchTerms, wikipediaUrl);
         selectedMediaItems = null;
         return callback(container.innerHTML);
       }
@@ -804,7 +812,7 @@ var illustrator = {
   },
 
   createMediaGalleryDump: function(mediaItems, divs, width, height, algorithm,
-      searchTerms) {
+      searchTerms, wikipediaUrl) {
     var len = divs.length;
     var margin = illustrator.mediaGalleryMargin;
     var fontSize = illustrator.mediaGalleryFontSize;
@@ -882,32 +890,27 @@ var illustrator = {
     }
     canvas.toBuffer(function(err, buf) {
       var fileName = __dirname + '/mediagalleries/mediagallery_' +
-          algorithm + '_' + Object.keys(searchTerms)
-            .filter(function(term) {
-              return !/^http:\/\//.test(term);
-            })[0].replace(/\s/g, '_').replace(/\//g, '_') +
+          algorithm + '_' + Object.keys(searchTerms)[0]
+          .replace(/\s/g, '_').replace(/\//g, '_') +
           '_' + Date.now() + '.png';
       require('fs').writeFile(fileName, buf, function(err) {
         if (err) {
           return console.log('File write error: "' + fileName + '". Error: ' +
               err);
         }
-        var url = Object.keys(searchTerms).filter(function(term) {
-          return /^https?:\/\//.test(term);
-        })[0];
         // if we have already tweeted the current URL, don't tweet it again
-        if (recentTweetsBuffer.indexOf(url) !== -1) {
-          console.log('Already tweeted media gallery about ' + url);
+        if (recentTweetsBuffer.indexOf(wikipediaUrl) !== -1) {
+          console.log('Already tweeted media gallery about ' + wikipediaUrl);
           return;
         }
         // keep the recent tweets buffer at most 10 elements long
-        recentTweetsBuffer.push(url);
+        recentTweetsBuffer.push(wikipediaUrl);
         if (recentTweetsBuffer.length > 10) {
           recentTweetsBuffer.shift();
         }
         twitterRestClient.statusesUpdateWithMedia({
-            'status': '#BreakingNews candidate via @WikiLiveMon: ' + url +
-                ', ',
+            'status': '#BreakingNews candidate via @WikiLiveMon: ' +
+                wikipediaUrl + '. Media gallery: ',
             'media[]': fileName.replace(/^~/g, '/Users/tsteiner')
           },
           function(error, result) {
