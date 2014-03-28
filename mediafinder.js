@@ -812,10 +812,10 @@ var mediaFinder = {
                 function() {
                   var group = this.group();
                   items.forEach(function(item) {
-                    if (item.type !== 'photo' && item.type !== 'video') {
-                      return;
-                    }
                     var cb = group();
+                    if (item.type !== 'photo' && item.type !== 'video') {
+                      cb(null);
+                    }
                     var timestamp = Date.parse(item.created_time);
                     var micropost = '';
                     micropost += (item.name ? item.name : '');
@@ -829,7 +829,7 @@ var mediaFinder = {
                     // need to test if the serch term is contained.
                     // (http://support.gnip.com/sources/facebook.html#Streams)
                     if (micropost.indexOf(query.replace(/"/g, '')) === -1) {
-                      return;
+                      cb(null);
                     }
                     var mediaUrl = item.type === 'video' ?
                         item.source : item.picture;
