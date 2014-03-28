@@ -825,6 +825,12 @@ var mediaFinder = {
                         (micropost.length ? '. ' : '') + item.description : '');
                     micropost += (item.micropost ?
                         (micropost.length ? '. ' : '') + item.micropost : '');
+                    // Facebook does not support phrase search, so we manually
+                    // need to test if the serch term is contained.
+                    // (http://support.gnip.com/sources/facebook.html#Streams)
+                    if (micropost.indexOf(term) === -1) {
+                      return;
+                    }
                     var mediaUrl = item.type === 'video' ?
                         item.source : item.picture;
                     if (item.type === 'video') {
@@ -850,7 +856,7 @@ var mediaFinder = {
                               likes: item.likes ? item.likes.count : null,
                               shares: item.shares ? item.shares.count : null,
                               comments: item.comments ?
-                                  item.comments.count : null,
+                                  item.comments.data.length : null,
                               views: null
                             }
                           });

@@ -204,6 +204,12 @@ var socialNetworkSearch = function(terms, callback) {
         if (result.link) {
           micropost += ' ' + result.link;
         }
+        // Facebook does not support phrase search, so we manually need to test
+        // if the serch term is contained.
+        // (http://support.gnip.com/sources/facebook.html#Streams)
+        if (micropost.indexOf(term) === -1) {
+          return;
+        }
 
         var avatar = 'https://graph.facebook.com/' + result.from.id +
             '/picture';
