@@ -2,6 +2,8 @@
 
 var request = require('request');
 var twitter = require('ntwitter');
+var env = require('node-env-file');
+env(__dirname + '/.env');
 
 var twit = new twitter({
   consumer_key: process.env.TWITTER_CONSUMER_KEY,

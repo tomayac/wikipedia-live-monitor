@@ -14,6 +14,8 @@ var socialNetworkSearch = require('./social-network-search.js');
 var wiki2html = require('./wiki2html.js');
 var wikipedias = require('./wikipedias.js');
 var illustrator = require('./mediagallery.js');
+var env = require('node-env-file');
+env(__dirname + '/.env');
 
 // verbous debug mode
 var VERBOUS = true;
