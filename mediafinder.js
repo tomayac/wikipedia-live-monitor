@@ -6,7 +6,7 @@ var jsdom = require('jsdom');
 var pos = require('pos');
 var URL = require('url');
 var Step = require('./step.js');
-var twitter = require('ntwitter');
+var twitter = require('node-twitter');
 var env = require('node-env-file');
 env(__dirname + '/.env');
 
@@ -75,12 +75,12 @@ var GLOBAL_config = {
   TAG_REGEX: /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi
 };
 
-var twit = new twitter({
-  consumer_key: GLOBAL_config.TWITTER_CONSUMER_KEY,
-  consumer_secret: GLOBAL_config.TWITTER_CONSUMER_SECRET,
-  access_token_key: GLOBAL_config.TWITTER_ACCESS_TOKEN_KEY,
-  access_token_secret: GLOBAL_config.TWITTER_ACCESS_TOKEN_SECRET
-});
+var twit = new twitter.SearchClient(
+  GLOBAL_config.TWITTER_CONSUMER_KEY,
+  GLOBAL_config.TWITTER_CONSUMER_SECRET,
+  GLOBAL_config.TWITTER_ACCESS_TOKEN_KEY,
+  GLOBAL_config.TWITTER_ACCESS_TOKEN_SECRET
+);
 
 var mediaFinder = {
   search: function search(service, query, userAgent, callback) {
@@ -909,10 +909,10 @@ var mediaFinder = {
           console.log(currentService + ' *** ' + query);
         }
         twit.search(
-            query + ' ' + GLOBAL_config.MEDIA_PLATFORMS.join(' OR ') +
-                ' -"RT "',
             /* jshint indent:false */
             {
+              q: query + ' ' + GLOBAL_config.MEDIA_PLATFORMS.join(' OR ') +
+                  ' -"RT "',
               rpp: 20,
               result_type: 'recent',
               include_entities: true,
@@ -969,10 +969,10 @@ var mediaFinder = {
           console.log(currentService + ' *** ' + query);
         }
         twit.search(
-            query + ' AND %28' + GLOBAL_config.MEDIA_PLATFORMS.join(' OR ') +
-                '%29 -"RT "',
             /* jshint indent:false */
             {
+              q: query + ' AND %28' + GLOBAL_config.MEDIA_PLATFORMS.join(' OR ') +
+                  '%29 -"RT "',
               rpp: 20,
               result_type: 'recent',
               include_entities: true,
