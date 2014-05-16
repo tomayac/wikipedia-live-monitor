@@ -11,7 +11,7 @@ var env = require('node-env-file');
 env(__dirname + '/.env');
 
 var GLOBAL_config = {
-  DEBUG: false,
+  DEBUG: true,
   TRANSLATE: false,
   PART_OF_SPEECH: false,
   NAMED_ENTITY_EXTRACTION: false,
@@ -105,6 +105,7 @@ var mediaFinder = {
      * Core bits adapted from https://github.com/endlesshack/youtube-video
      */
     function cleanVideoUrl(url, callback) {
+
       var decodeQueryString = function(queryString) {
         var key, keyValPair, keyValPairs, r, val, _i, _len;
         r = {};
@@ -137,34 +138,37 @@ var mediaFinder = {
         return sources;
       };
 
+      // Possible URL patterns
+      // http://www.youtube.com/v/WnszesKUXp8
+      // http://www.youtube.com/watch?v=EVBsypHzF3U
+      // http://www.youtube.com/watch?v=-qzRe325AQU&feature=youtube_gdata_player
+      // http://youtu.be/EVBsypHzF3U
+      var extractYouTubeVideoId = function(url) {
+        var urlObj = URL.parse(url);
+        var pathComponents = urlObj.pathname.split(/\//g);
+        var videoId;
+        if (pathComponents[1] === 'v') {
+          videoId = pathComponents[2];
+        } else if (pathComponents[1] === 'watch') {
+          var query = urlObj.query;
+          query.split(/&/g).forEach(function(param) {
+            var keyValue = param.split(/=/);
+            if (keyValue[0] === 'v') {
+              videoId = keyValue[1];
+            }
+          });
+        } else {
+          videoId = pathComponents[1];
+        }
+        return videoId;
+      };
+
       // if is YouTube URL
       if ((url.indexOf('http://www.youtube.com') === 0) ||
           (url.indexOf('https://www.youtube.com') === 0) ||
           (url.indexOf('http://youtu.be') === 0)) {
         try {
-          var urlObj = URL.parse(url);
-          var path = urlObj.path;
-          var pathComponents = path.split(/\//gi);
-          var videoId;
-          if (pathComponents[1] === 'v') {
-            // URL of 'v' type:
-            // http://www.youtube.com/v/WnszesKUXp8
-            videoId = pathComponents[2];
-          } else if (pathComponents[1] === 'watch') {
-            // URL of 'watch' type:
-            // http://www.youtube.com/watch?v=EVBsypHzF3U
-            var query = urlObj.search;
-            query.substring(1).split(/&/gi).forEach(function(param) {
-              var keyValue = param.split(/\=/g);
-              if (keyValue[0] === 'v') {
-                videoId = keyValue[1];
-              }
-            });
-          } else if (!pathComponents[0] && pathComponents[1]) {
-            // URL of shortened type:
-            // http://youtu.be/EVBsypHzF3U
-            videoId = pathComponents[1];
-          }
+          var videoId = extractYouTubeVideoId(url);
           // Translate to HTML5 video URL, try at least
           var options = {
             headers: {
@@ -241,6 +245,7 @@ var mediaFinder = {
      * Removes line breaks, double spaces, HTML tags, HTML entities, etc.
      */
     function cleanMicropost(micropost) {
+
       function strip_tags(input, allowed) {
         // making sure the allowed arg is a string containing only tags in
         // lowercase (<a><b><c>)
@@ -253,6 +258,7 @@ var mediaFinder = {
           return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
         });
       }
+
       if (micropost) {
         // replace HTML entities
         micropost = replaceHtmlEntities(micropost);
@@ -665,6 +671,12 @@ var mediaFinder = {
      */
     function collectResults(json, service, pendingRequests) {
       if (GLOBAL_config.DEBUG) { console.log('collectResults for ' + service); }
+      /* global io:false */
+      if (io) {
+        io.sockets.emit('mediaResults', {
+          service: service
+        });
+      }
       if (!pendingRequests) {
         if (service !== 'combined') {
           var temp = json;
@@ -717,7 +729,8 @@ var mediaFinder = {
           try {
             body = JSON.parse(body);
             if (body.items && Array.isArray(body.items)) {
-              body.items.forEach(function(item) {
+              var itemsLength = body.items.length;
+              body.items.forEach(function(item, processedItems) {
                 // only treat posts, notes, and shares, no check-ins
                 if (((item.verb === 'share') ||
                      (item.verb === 'post') ||
@@ -729,6 +742,11 @@ var mediaFinder = {
                     if ((attachment.objectType !== 'photo') &&
                         (attachment.objectType !== 'video') &&
                         (attachment.objectType !== 'article')) {
+                      processedItems++;
+                      if (processedItems === itemsLength) {
+                        collectResults(results, currentService,
+                            pendingRequests);
+                      }
                       return;
                     }
                     // the micropost can consist of different parts, dependent
@@ -750,7 +768,8 @@ var mediaFinder = {
                         mediaUrl = attachment.fullImage.url;
                       }
                       cleanVideoUrl(mediaUrl, function(cleanedMediaUrl) {
-                        if (cleanedMediaUrl && cleanedMediaUrl !== mediaUrl) {
+                        processedItems++;
+                        if (cleanedMediaUrl) {
                           results.push({
                             mediaUrl: cleanedMediaUrl,
                             posterUrl: attachment.image.url,
@@ -769,12 +788,26 @@ var mediaFinder = {
                             }
                           });
                         }
+                        if (processedItems === itemsLength) {
+                          collectResults(results, currentService,
+                              pendingRequests);
+                        }
                       });
+                    } else {
+                      processedItems++;
+                      if (processedItems === itemsLength) {
+                        collectResults(results, currentService,
+                            pendingRequests);
+                      }
                     }
                   });
+                } else {
+                  processedItems++;
+                  if (processedItems === itemsLength) {
+                    collectResults(results, currentService, pendingRequests);
+                  }
                 }
               });
-              collectResults(results, currentService, pendingRequests);
             } else {
               collectResults(results, currentService, pendingRequests);
             }
@@ -909,7 +942,6 @@ var mediaFinder = {
           console.log(currentService + ' *** ' + query);
         }
         twit.search(
-            /* jshint indent:false */
             {
               q: query + ' ' + GLOBAL_config.MEDIA_PLATFORMS.join(' OR ') +
                   ' -"RT "',
@@ -917,7 +949,6 @@ var mediaFinder = {
               result_type: 'recent',
               include_entities: true,
             },
-            /* jshint indent:2 */
             function(err, body) {
           try {
             var results = [];
@@ -969,20 +1000,19 @@ var mediaFinder = {
           console.log(currentService + ' *** ' + query);
         }
         twit.search(
-            /* jshint indent:false */
             {
-              q: query + ' AND %28' + GLOBAL_config.MEDIA_PLATFORMS.join(' OR ') +
-                  '%29 -"RT "',
+              q: query + ' AND %28' +
+                  GLOBAL_config.MEDIA_PLATFORMS.join(' OR ') + '%29 -"RT "',
               rpp: 20,
               result_type: 'recent',
               include_entities: true,
             },
-            /* jshint indent:2 */
             function(err, body) {
           try {
             var results = [];
             if ((body.statuses) && (body.statuses.length)) {
               var items = body.statuses;
+              var itemStack = [];
               var numberOfUrls = 0;
               var pendingUrls = 0;
               for (var i = 0, len = items.length; i < len; i++) {
@@ -1401,7 +1431,7 @@ var mediaFinder = {
         };
         params = querystring.stringify(params);
         var options = {
-          url: 'http://api.flickr.com/services/rest/?' + params,
+          url: 'https://api.flickr.com/services/rest/?' + params,
           headers: GLOBAL_config.HEADERS
         };
         if (GLOBAL_config.DEBUG) {
@@ -1428,7 +1458,7 @@ var mediaFinder = {
                       };
                       params = querystring.stringify(params);
                       var options = {
-                        url: 'http://api.flickr.com/services/rest/?' + params,
+                        url: 'https://api.flickr.com/services/rest/?' + params,
                         headers: GLOBAL_config.HEADERS
                       };
                       var cb = group();
@@ -1455,7 +1485,7 @@ var mediaFinder = {
                           };
                           params = querystring.stringify(params);
                           var options = {
-                            url: 'http://api.flickr.com/services/rest/?' +
+                            url: 'https://api.flickr.com/services/rest/?' +
                                 params,
                             headers: GLOBAL_config.HEADERS
                           };
@@ -1501,8 +1531,8 @@ var mediaFinder = {
                                 };
                                 params = querystring.stringify(params);
                                 var options = {
-                                  url: 'http://api.flickr.com/services/rest/?' +
-                                      params,
+                                  url: 'https://api.flickr.com/services/' +
+                                      'rest/?' + params,
                                   headers: GLOBAL_config.HEADERS
                                 };
                                 request.get(options, function(err, res2, body) {
@@ -1512,15 +1542,15 @@ var mediaFinder = {
                                       mediaUrl: mediaUrl,
                                       posterUrl: posterUrl,
                                       micropostUrl:
-                                          'http://www.flickr.com/photos/' +
+                                          'https://www.flickr.com/photos/' +
                                           photo2.owner.nsid + '/' + photo2.id +
                                           '/',
-                                      micropost:
-                                          cleanMicropost(photo2.title._content +
+                                      micropost: cleanMicropost(
+                                          photo2.title._content +
                                           '. ' + photo2.description._content +
                                           tags.join(', ')),
                                       userProfileUrl:
-                                          'http://www.flickr.com/photos/' +
+                                          'https://www.flickr.com/photos/' +
                                           photo2.owner.nsid + '/',
                                       type: (videoSearch ? 'video' : 'photo'),
                                       timestamp: timestamp,
