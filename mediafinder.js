@@ -672,7 +672,7 @@ var mediaFinder = {
     function collectResults(json, service, pendingRequests) {
       if (GLOBAL_config.DEBUG) { console.log('collectResults for ' + service); }
       /* global io:false */
-      if (io) {
+      if (typeof io !== 'undefined') {
         io.sockets.emit('mediaResults', {
           service: service
         });
