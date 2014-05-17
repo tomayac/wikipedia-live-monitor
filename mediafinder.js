@@ -728,7 +728,7 @@ var mediaFinder = {
           var results = [];
           try {
             body = JSON.parse(body);
-            if (body.items && Array.isArray(body.items)) {
+            if (body.items && Array.isArray(body.items) && body.items.length) {
               var itemsLength = body.items.length;
               body.items.forEach(function(item, processedItems) {
                 // only treat posts, notes, and shares, no check-ins
