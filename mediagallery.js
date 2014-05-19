@@ -8,7 +8,9 @@ var request = require('request');
 var Histogram = require('./histogram.js');
 var Twitter = require('node-twitter');
 var env = require('node-env-file');
-env(__dirname + '/.env');
+try {
+  env(__dirname + '/.env');
+}
 
 var twitterRestClient = new Twitter.RestClient(
   process.env.MEDIA_GALLERY_API_KEY,

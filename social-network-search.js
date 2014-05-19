@@ -3,7 +3,9 @@
 var request = require('request');
 var twitter = require('node-twitter');
 var env = require('node-env-file');
-env(__dirname + '/.env');
+try {
+  env(__dirname + '/.env');
+}
 
 var twit = new twitter.SearchClient(
   process.env.TWITTER_CONSUMER_KEY,

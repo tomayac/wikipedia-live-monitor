@@ -8,7 +8,9 @@ var URL = require('url');
 var Step = require('./step.js');
 var twitter = require('node-twitter');
 var env = require('node-env-file');
-env(__dirname + '/.env');
+try {
+  env(__dirname + '/.env');
+}
 
 var GLOBAL_config = {
   DEBUG: true,
