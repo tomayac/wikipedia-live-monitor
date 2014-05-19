@@ -3,7 +3,7 @@
 var request = require('request');
 var twitter = require('node-twitter');
 var env = require('node-env-file');
-if (fs.existsSync(__dirname + '/.env')) {
+if (require('fs').existsSync(__dirname + '/.env')) {
   env(__dirname + '/.env');
 }
 

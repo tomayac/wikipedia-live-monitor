@@ -8,9 +8,11 @@ var request = require('request');
 var Histogram = require('./histogram.js');
 var Twitter = require('node-twitter');
 var env = require('node-env-file');
-if (fs.existsSync(__dirname + '/.env')) {
+if (require('fs').existsSync(__dirname + '/.env')) {
   env(__dirname + '/.env');
 }
+
+var TWEET_BREAKING_NEWS_CANDIDATES = false;
 
 var twitterRestClient = new Twitter.RestClient(
   process.env.MEDIA_GALLERY_API_KEY,
@@ -807,8 +809,10 @@ var illustrator = {
         mediaGallery.style.height = height + 'px';
         var container = document.createElement('div');
         container.appendChild(mediaGallery);
-        illustrator.createMediaGalleryDump(mediaItems, divs, width, height,
-            algorithm, searchTerms, wikipediaUrl);
+        if (TWEET_BREAKING_NEWS_CANDIDATES) {
+          illustrator.createMediaGalleryDump(mediaItems, divs, width, height,
+              algorithm, searchTerms, wikipediaUrl);
+        }
         selectedMediaItems = null;
         return callback(container.innerHTML);
       }

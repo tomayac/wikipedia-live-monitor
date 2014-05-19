@@ -15,7 +15,7 @@ var wiki2html = require('./wiki2html.js');
 var wikipedias = require('./wikipedias.js');
 var illustrator = require('./mediagallery.js');
 var env = require('node-env-file');
-if (fs.existsSync(__dirname + '/.env')) {
+if (require('fs').existsSync(__dirname + '/.env')) {
   env(__dirname + '/.env');
 }
 
@@ -71,7 +71,7 @@ var USER_AGENT = 'Wikipedia Live Monitor * IRC nick: ' + IRC_NICK + ' *' +
 var TWITTER_SHORT_URL_LENGTH = 23;
 
 // if enabled, breaking news candidates will be tweeted
-var TWEET_BREAKING_NEWS_CANDIDATES = true;
+var TWEET_BREAKING_NEWS_CANDIDATES = false;
 
 // if enabled, breaking news candidates will be emailed
 var EMAIL_BREAKING_NEWS_CANDIDATES = false;
