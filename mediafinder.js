@@ -865,8 +865,10 @@ var mediaFinder = {
                     // Facebook does not support phrase search, so we manually
                     // need to test if the serch term is contained.
                     // (http://support.gnip.com/sources/facebook.html#Streams)
-                    if (micropost.indexOf(query.replace(/"/g, '')) === -1) {
-                      cb(null);
+                    if (micropost.toLowerCase().replace(/\s/g, '')
+                        .indexOf(query.toLowerCase().replace(/"/g, '')
+                        .replace(/\s/g, '')) === -1) {
+                      return cb(null);
                     }
                     var mediaUrl = item.type === 'video' ?
                         item.source : item.picture;
