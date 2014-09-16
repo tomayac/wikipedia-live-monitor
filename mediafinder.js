@@ -86,7 +86,9 @@ var twit = new twitter.SearchClient(
 
 var mediaFinder = {
   search: function search(service, query, userAgent, callback) {
-    GLOBAL_config.HEADERS['User-Agent'] = userAgent;
+    GLOBAL_config.HEADERS['User-Agent'] = userAgent ||
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.36 ' +
+        '(KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36';
     /**
      * From https://developer.mozilla.org/en/JavaScript/Reference/Global_-
      * Objects/Date#Example:_ISO_8601_formatted_dates
@@ -851,7 +853,7 @@ var mediaFinder = {
                   items.forEach(function(item) {
                     var cb = group();
                     if (item.type !== 'photo' && item.type !== 'video') {
-                      cb(null);
+                      return cb(null);
                     }
                     var timestamp = Date.parse(item.created_time);
                     var micropost = '';
@@ -1105,7 +1107,10 @@ var mediaFinder = {
                           .replace('thumbnail/', '')
                           .replace('/full', '');
                       var options = {
-                        url: 'http://twitpic.com/' + id + '/full'
+                        url: 'http://twitpic.com/' + id + '/full',
+                        headers: {
+                          'User-Agent': GLOBAL_config.HEADERS['User-Agent']
+                        }
                       };
                       (function(micropost, userProfileUrl, timestamp,
                           publicationDate) {
@@ -1742,7 +1747,13 @@ var mediaFinder = {
                       var views = parseInt(image.views, 10);
                       var comments = parseInt(image.number_of_comments, 10);
                       var cb = group();
-                      request.get(micropostUrl + '/full', function(err2,
+                      var options = {
+                        url: micropostUrl + '/full',
+                        headers: {
+                          'User-Agent': GLOBAL_config.HEADERS['User-Agent']
+                        }
+                      };
+                      request.get(options, function(err2,
                           reply2, body2) {
                         scrapeTwitPic(body2, function(mediaUrl, type) {
                           results.push({
