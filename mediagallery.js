@@ -13,6 +13,7 @@ if (require('fs').existsSync(__dirname + '/.env')) {
 }
 
 var TWEET_BREAKING_NEWS_CANDIDATES = false;
+var DUMP_MEDIA_GALLERIES = false;
 
 var twitterRestClient = new Twitter.RestClient(
   process.env.MEDIA_GALLERY_API_KEY,
@@ -523,8 +524,10 @@ var illustrator = {
     clusters.sort(illustrator.rankingFormulas.popularity.func);
     illustrator.createMediaGallery(mediaItems, clusters, 'strictOrder',
         searchTerms, wikipediaUrl, callback);
+    /*
     illustrator.createMediaGallery(mediaItems, clusters, 'looseOrder',
         searchTerms, wikipediaUrl, callback);
+    */
   },
 
   createMediaGallery: function(mediaItems, clusters, algorithm, searchTerms,
@@ -660,8 +663,10 @@ var illustrator = {
           }
         }
         mediaGallery.style.width = width + 'px';
-        illustrator.createMediaGalleryDump(mediaItems, divs, width, height,
-            algorithm, searchTerms, wikipediaUrl);
+        if (DUMP_MEDIA_GALLERIES) {
+          illustrator.createMediaGalleryDump(mediaItems, divs, width, height,
+              algorithm, searchTerms, wikipediaUrl);
+        }
         selectedMediaItems = null;
         return callback(container.innerHTML);
       }
@@ -809,7 +814,7 @@ var illustrator = {
         mediaGallery.style.height = height + 'px';
         var container = document.createElement('div');
         container.appendChild(mediaGallery);
-        if (TWEET_BREAKING_NEWS_CANDIDATES) {
+        if (DUMP_MEDIA_GALLERIES) {
           illustrator.createMediaGalleryDump(mediaItems, divs, width, height,
               algorithm, searchTerms, wikipediaUrl);
         }
