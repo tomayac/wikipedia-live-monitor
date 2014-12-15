@@ -922,28 +922,28 @@ var illustrator = {
           // if we have already tweeted the current URL, don't tweet it again
           if (recentTweetsBuffer.indexOf(wikipediaUrl) !== -1) {
             console.log('Already tweeted media gallery about ' + wikipediaUrl);
-            return;
-          }
-          // keep the recent tweets buffer at most 10 elements long
-          recentTweetsBuffer.push(wikipediaUrl);
-          if (recentTweetsBuffer.length > 10) {
-            recentTweetsBuffer.shift();
-          }
-          twitterRestClient.statusesUpdateWithMedia({
-              'status': '#BreakingNews candidate via @WikiLiveMon: ' +
-                  wikipediaUrl + '. Media gallery: ',
-              'media[]': fileName.replace(/^~/g, '/Users/tsteiner')
-            },
-            function(error, result) {
-              if (error) {
-                console.log('Error: ' + (error.code ? error.code + ' ' +
-                    error.message : error.message));
-              }
-              if (result) {
-                console.log(result);
-              }
+          } else {
+            // keep the recent tweets buffer at most 10 elements long
+            recentTweetsBuffer.push(wikipediaUrl);
+            if (recentTweetsBuffer.length > 10) {
+              recentTweetsBuffer.shift();
             }
-          );
+            twitterRestClient.statusesUpdateWithMedia({
+                'status': '#BreakingNews candidate via @WikiLiveMon: ' +
+                    wikipediaUrl + '. Media gallery: ',
+                'media[]': fileName.replace(/^~/g, '/Users/tsteiner')
+              },
+              function(error, result) {
+                if (error) {
+                  console.log('Error: ' + (error.code ? error.code + ' ' +
+                      error.message : error.message));
+                }
+                if (result) {
+                  console.log(result);
+                }
+              }
+            );
+          }
         }
         if (!DUMP_MEDIA_GALLERIES) {
           fs.unlink(fileName, function (error) {
