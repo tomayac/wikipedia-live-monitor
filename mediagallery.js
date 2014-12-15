@@ -27,6 +27,11 @@ var twitterRestClient = new Twitter.RestClient(
   process.env.MEDIA_GALLERY_ACCESS_TOKEN_SECRET
 );
 var recentTweetsBuffer = [];
+try {
+  fs.mkdirSync(__dirname + '/mediagalleries');
+} catch(e) {
+  // no-op
+}
 
 var window = jsdom().createWindow();
 var document = window.document;
