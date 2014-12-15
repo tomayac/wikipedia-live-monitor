@@ -8,12 +8,17 @@ var request = require('request');
 var Histogram = require('./histogram.js');
 var Twitter = require('node-twitter');
 var env = require('node-env-file');
-if (require('fs').existsSync(__dirname + '/.env')) {
+var fs = require('fs');
+if (fs.existsSync(__dirname + '/.env')) {
   env(__dirname + '/.env');
 }
 
-var TWEET_BREAKING_NEWS_CANDIDATES = false;
-var DUMP_MEDIA_GALLERIES = false;
+var TWEET_MEDIA_GALLERIES =
+  process.env.TWEET_MEDIA_GALLERIES.toLowerCase().trim() === 'false' ?
+      false : true;
+var DUMP_MEDIA_GALLERIES =
+  process.env.DUMP_MEDIA_GALLERIES.toLowerCase().trim() === 'false' ?
+      false : true;
 
 var twitterRestClient = new Twitter.RestClient(
   process.env.MEDIA_GALLERY_API_KEY,
@@ -663,10 +668,9 @@ var illustrator = {
           }
         }
         mediaGallery.style.width = width + 'px';
-        if (DUMP_MEDIA_GALLERIES) {
-          illustrator.createMediaGalleryDump(mediaItems, divs, width, height,
-              algorithm, searchTerms, wikipediaUrl);
-        }
+
+        illustrator.createMediaGalleryDump(mediaItems, divs, width, height,
+            algorithm, searchTerms, wikipediaUrl);
         selectedMediaItems = null;
         return callback(container.innerHTML);
       }
@@ -814,10 +818,8 @@ var illustrator = {
         mediaGallery.style.height = height + 'px';
         var container = document.createElement('div');
         container.appendChild(mediaGallery);
-        if (DUMP_MEDIA_GALLERIES) {
-          illustrator.createMediaGalleryDump(mediaItems, divs, width, height,
-              algorithm, searchTerms, wikipediaUrl);
-        }
+        illustrator.createMediaGalleryDump(mediaItems, divs, width, height,
+            algorithm, searchTerms, wikipediaUrl);
         selectedMediaItems = null;
         return callback(container.innerHTML);
       }
@@ -906,36 +908,46 @@ var illustrator = {
           algorithm + '_' + Object.keys(searchTerms)[0]
           .replace(/\s/g, '_').replace(/\//g, '_') +
           '_' + Date.now() + '.png';
-      require('fs').writeFile(fileName, buf, function(err) {
+      fs.writeFile(fileName, buf, function(err) {
         if (err) {
           return console.log('File write error: "' + fileName + '". Error: ' +
               err);
         }
-        // if we have already tweeted the current URL, don't tweet it again
-        if (recentTweetsBuffer.indexOf(wikipediaUrl) !== -1) {
-          console.log('Already tweeted media gallery about ' + wikipediaUrl);
-          return;
-        }
-        // keep the recent tweets buffer at most 10 elements long
-        recentTweetsBuffer.push(wikipediaUrl);
-        if (recentTweetsBuffer.length > 10) {
-          recentTweetsBuffer.shift();
-        }
-        twitterRestClient.statusesUpdateWithMedia({
-            'status': '#BreakingNews candidate via @WikiLiveMon: ' +
-                wikipediaUrl + '. Media gallery: ',
-            'media[]': fileName.replace(/^~/g, '/Users/tsteiner')
-          },
-          function(error, result) {
-            if (error) {
-              console.log('Error: ' + (error.code ? error.code + ' ' +
-                  error.message : error.message));
-            }
-            if (result) {
-              console.log(result);
-            }
+        if (TWEET_MEDIA_GALLERIES) {
+          // if we have already tweeted the current URL, don't tweet it again
+          if (recentTweetsBuffer.indexOf(wikipediaUrl) !== -1) {
+            console.log('Already tweeted media gallery about ' + wikipediaUrl);
+            return;
           }
-        );
+          // keep the recent tweets buffer at most 10 elements long
+          recentTweetsBuffer.push(wikipediaUrl);
+          if (recentTweetsBuffer.length > 10) {
+            recentTweetsBuffer.shift();
+          }
+          twitterRestClient.statusesUpdateWithMedia({
+              'status': '#BreakingNews candidate via @WikiLiveMon: ' +
+                  wikipediaUrl + '. Media gallery: ',
+              'media[]': fileName.replace(/^~/g, '/Users/tsteiner')
+            },
+            function(error, result) {
+              if (error) {
+                console.log('Error: ' + (error.code ? error.code + ' ' +
+                    error.message : error.message));
+              }
+              if (result) {
+                console.log(result);
+              }
+            }
+          );
+        }
+        if (!DUMP_MEDIA_GALLERIES) {
+          fs.unlink(fileName, function (error) {
+            if (error) {
+              return console.log('Error: Could not delete ' + fileName);
+            }
+            console.log('Successfully deleted ' + fileName);
+          });
+        }
       });
     });
     mediaItems = null;

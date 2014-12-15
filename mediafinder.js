@@ -1018,7 +1018,6 @@ var mediaFinder = {
             var results = [];
             if ((body.statuses) && (body.statuses.length)) {
               var items = body.statuses;
-              var itemStack = [];
               var numberOfUrls = 0;
               var pendingUrls = 0;
               for (var i = 0, len = items.length; i < len; i++) {

@@ -71,10 +71,14 @@ var USER_AGENT = 'Wikipedia Live Monitor * IRC nick: ' + IRC_NICK + ' *' +
 var TWITTER_SHORT_URL_LENGTH = 23;
 
 // if enabled, breaking news candidates will be tweeted
-var TWEET_BREAKING_NEWS_CANDIDATES = false;
+var TWEET_BREAKING_NEWS_CANDIDATES =
+  process.env.TWEET_BREAKING_NEWS_CANDIDATES.toLowerCase().trim() === 'false' ?
+      false : true;
 
 // if enabled, breaking news candidates will be emailed
-var EMAIL_BREAKING_NEWS_CANDIDATES = false;
+var EMAIL_BREAKING_NEWS_CANDIDATES =
+  process.env.EMAIL_BREAKING_NEWS_CANDIDATES.toLowerCase().trim() === 'false' ?
+      false : true;
 
 var IP_V6 = /(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]).){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]).){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))/g;
 var IP_V4 = /((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])/;
