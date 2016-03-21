@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "dependencies": {
     "async": "~0.9.0",
-    "canvas": "~1.1.4",
+    "canvas": "~1.3.12",
     "express": "~4.4.4",
     "irc": "~0.3.7",
     "request": "~2.36.0",
