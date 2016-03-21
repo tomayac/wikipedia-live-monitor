@@ -262,11 +262,12 @@ function parseMessage(message, to) {
   var languageClusterUrl;
   if (language === 'wikidata') {
     languageClusterUrl = 'http://www.wikidata.org/w/api.php?' +
-        'action=wbgetentities&props=sitelinks&format=json&ids=' + article;
+    'action=wbgetentities&props=sitelinks&format=json&ids=' +
+        encodeURIComponent(article);
   } else {
     languageClusterUrl = 'http://' + language +
         '.wikipedia.org/w/api.php?action=query&prop=langlinks' +
-        '&format=json&lllimit=500&titles=' + article;
+        '&format=json&lllimit=500&titles=' + encodeURIComponent(article);
   }
   return {
     article: article,
