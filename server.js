@@ -949,8 +949,8 @@ function email(article, wikipediaUrl, microposts) {
               // not older than 1h: 1 * 60 * 60 * 1000 = 3600000
               if (now - item.timestamp < 3600000) {
                 var micropost = item.micropost;
-                if (micropost.length > 140) {
-                  micropost = micropost.substring(0, 140) + ' […]';
+                if (micropost.length > 280) {
+                  micropost = micropost.substring(0, 280) + ' […]';
                 }
                 socialHtml += '<br/><img style="width: 16px; height: 16px; ' +
                     'border-radius: 5px; vertical-align: middle;" src="' +
