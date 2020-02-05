@@ -1,6 +1,8 @@
 Wikipedia IRC
 =============
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/tomayac/wikipedia-live-monitor.svg)](https://greenkeeper.io/)
+
 Try to spot new trends based on Wikipedia live edit spikes.
 A demo is running on [Heroku](http://wikipedia-live-monitor.herokuapp.com/).
 
