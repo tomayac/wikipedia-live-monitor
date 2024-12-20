@@ -11,7 +11,7 @@ var millionPlusLanguages = {
   fr: true,
   it: true,
   es: true,
-  ru: true
+  ru: true,
 };
 
 // http://meta.wikimedia.org/wiki/List_of_Wikipedias#100_000.2B_articles
@@ -53,7 +53,7 @@ var oneHundredThousandPlusLanguages = {
   et: true,
   hi: true,
   nn: true,
-  gl: true
+  gl: true,
 };
 
 var tenThousandPlusLanguages = {
@@ -130,7 +130,7 @@ var tenThousandPlusLanguages = {
   arz: true,
   mzn: true,
   yi: true,
-  vec: true
+  vec: true,
 };
 
 var thousandPlusLanguages = {
@@ -236,7 +236,7 @@ var thousandPlusLanguages = {
   av: true,
   kbd: true,
   srn: true,
-  mwl: true
+  mwl: true,
 };
 
 var hundredPlusLanguages = {
@@ -292,14 +292,14 @@ var hundredPlusLanguages = {
   ny: true,
   tw: true,
   ch: true,
-  xh: true
+  xh: true,
 };
 
 var tenPlusLanguages = {
   ng: true,
   ii: true,
   cho: true,
-  mh: true
+  mh: true,
 };
 
 var onePlusLanguages = {
@@ -307,34 +307,35 @@ var onePlusLanguages = {
   kj: true,
   ho: true,
   mus: true,
-  kr: true
+  kr: true,
 };
 
 var zeroLanguages = {
-  hz: true
+  hz: true,
 };
 
 var reallyLongTailWikipedias = {};
 var smallerLanguageWikipedias = [].concat(
-    tenThousandPlusLanguages,
-    thousandPlusLanguages,
-    hundredPlusLanguages,
-    tenPlusLanguages,
-    onePlusLanguages,
-    zeroLanguages);
-smallerLanguageWikipedias.forEach(function(smallerLanguageWikipedia) {
+  tenThousandPlusLanguages,
+  thousandPlusLanguages,
+  hundredPlusLanguages,
+  tenPlusLanguages,
+  onePlusLanguages,
+  zeroLanguages
+);
+smallerLanguageWikipedias.forEach(function (smallerLanguageWikipedia) {
   for (var language in smallerLanguageWikipedia) {
     reallyLongTailWikipedias[language] = smallerLanguageWikipedia[language];
   }
 });
 
 var wikidata = {
-  wikidata: true
+  wikidata: true,
 };
 
 module.exports = {
   millionPlusLanguages: millionPlusLanguages,
   oneHundredThousandPlusLanguages: oneHundredThousandPlusLanguages,
   reallyLongTailWikipedias: reallyLongTailWikipedias,
-  wikidata: wikidata
+  wikidata: wikidata,
 };

@@ -1,9 +1,15 @@
 'use strict';
 
-var Histogram = (function() {
+var Histogram = (function () {
   return {
-    getHistogram: function(
-        ctx, opt_x, opt_y, opt_width, opt_height, opt_values) {
+    getHistogram: function (
+      ctx,
+      opt_x,
+      opt_y,
+      opt_width,
+      opt_height,
+      opt_values
+    ) {
       var x = opt_x || 0;
       var y = opt_y || 0;
       var w = opt_width || ctx.canvas.width;
@@ -25,10 +31,10 @@ var Histogram = (function() {
       var avg = {
         r: 0,
         g: 0,
-        b: 0
+        b: 0,
       };
       while (p--) {
-        var r = data[pix -= 4];
+        var r = data[(pix -= 4)];
         var g = data[pix + 1];
         var b = data[pix + 2];
         avg.r += r;
@@ -47,23 +53,23 @@ var Histogram = (function() {
           pixel: {
             r: r,
             g: g,
-            b: b
+            b: b,
           },
           average: round((r + g + b) / 3),
-          css: 'rgb(' + r + ',' + g + ',' + b + ')'
+          css: 'rgb(' + r + ',' + g + ',' + b + ')',
         };
       } else {
         return {
           pixel: {
             r: r,
             g: g,
-            b: b
+            b: b,
           },
           average: round((r + g + b) / 3),
-          css: 'rgb(' + r + ',' + g + ',' + b + ')'
+          css: 'rgb(' + r + ',' + g + ',' + b + ')',
         };
       }
-    }
+    },
   };
 })();
 

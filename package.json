@@ -1,22 +1,21 @@
 {
-  "name": "wikipedia-irc",
+  "name": "wikipedia-live-monitor",
   "version": "0.0.1",
-  "dependencies": {
-    "async": "~0.9.0",
-    "canvas": "~1.3.12",
-    "express": "~4.4.4",
-    "irc": "~0.3.7",
-    "request": "~2.36.0",
-    "socket.io": "~1.0.6",
-    "cheerio": "~0.17.0",
-    "nodemailer": "~0.7.0",
-    "node-twitter": "git://github.com/istrategylabs/node-twitter.git",
-    "jsdom": "~0.11.0",
-    "node-env-file": "*",
-    "pos": "*"
+  "scripts": {
+    "start": "node server.js",
+    "fix": "npx prettier . --write"
   },
-  "engines": {
-    "node": "0.10.x",
-    "npm": "1.3.x"
+  "dependencies": {
+    "async": "~3.2.6",
+    "cheerio": "~1.0.0",
+    "eventsource": "2.0.2",
+    "express": "~4.21.2",
+    "jsdom": "~25.0.1",
+    "node-env-file": "*",
+    "nodemailer": "~6.9.16",
+    "pos": "*",
+    "prettier": "^3.4.2",
+    "request": "~2.88.2",
+    "socket.io": "~4.8.1"
   }
 }

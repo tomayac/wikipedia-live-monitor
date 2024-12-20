@@ -26,7 +26,10 @@ SOFTWARE.
 // modified to fit my taste and the node.JS error handling system.
 function Step() {
   var steps = Array.prototype.slice.call(arguments),
-    pending, counter, results, lock;
+    pending,
+    counter,
+    results,
+    lock;
 
   // Define the main callback that's given as `this` to the steps.
   function next() {
@@ -66,11 +69,11 @@ function Step() {
   }
 
   // Add a special callback generator `this.parallel()` that groups stuff.
-  next.parallel = function() {
+  next.parallel = function () {
     var index = 1 + counter++;
     pending++;
 
-    return function() {
+    return function () {
       pending--;
       // Compress the error from any result to the first argument
       if (arguments[0]) {
@@ -86,7 +89,7 @@ function Step() {
   };
 
   // Generates a callback generator for grouped results
-  next.group = function() {
+  next.group = function () {
     var localCallback = next.parallel();
     var counter = 0;
     var pending = 0;
@@ -102,10 +105,10 @@ function Step() {
     process.nextTick(check); // Ensures that check is called at least once
 
     // Generates a callback for the group
-    return function() {
+    return function () {
       var index = counter++;
       pending++;
-      return function() {
+      return function () {
         pending--;
         // Compress the error from any result to the first argument
         if (arguments[0]) {
@@ -129,26 +132,26 @@ function Step() {
 // factories.
 Step.fn = function StepFn() {
   var steps = Array.prototype.slice.call(arguments);
-  return function() {
+  return function () {
     var args = Array.prototype.slice.call(arguments);
 
     // Insert a first step that primes the data stream
-    var toRun = [function() {
-      this.apply(null, args);
-    }].concat(steps);
+    var toRun = [
+      function () {
+        this.apply(null, args);
+      },
+    ].concat(steps);
 
     // If the last arg is a function add it as a last step
     if (typeof args[args.length - 1] === 'function') {
       toRun.push(args.pop());
     }
 
-
     Step.apply(null, toRun);
-  }
-}
-
+  };
+};
 
 // Hook into commonJS module systems
-if (typeof module !== 'undefined' && "exports" in module) {
+if (typeof module !== 'undefined' && 'exports' in module) {
   module.exports = Step;
 }

@@ -6,30 +6,20 @@ var Canvas = require('canvas');
 var Image = Canvas.Image;
 var request = require('request');
 var Histogram = require('./histogram.js');
-var Twitter = require('node-twitter');
 var env = require('node-env-file');
 var fs = require('fs');
 if (fs.existsSync(__dirname + '/.env')) {
   env(__dirname + '/.env');
 }
 
-var TWEET_MEDIA_GALLERIES =
-  process.env.TWEET_MEDIA_GALLERIES.toLowerCase().trim() === 'false' ?
-      false : true;
 var DUMP_MEDIA_GALLERIES =
-  process.env.DUMP_MEDIA_GALLERIES.toLowerCase().trim() === 'false' ?
-      false : true;
+  process.env.DUMP_MEDIA_GALLERIES.toLowerCase().trim() === 'false'
+    ? false
+    : true;
 
-var twitterRestClient = new Twitter.RestClient(
-  process.env.MEDIA_GALLERY_API_KEY,
-  process.env.MEDIA_GALLERY_API_SECRET,
-  process.env.MEDIA_GALLERY_ACCESS_TOKEN,
-  process.env.MEDIA_GALLERY_ACCESS_TOKEN_SECRET
-);
-var recentTweetsBuffer = [];
 try {
   fs.mkdirSync(__dirname + '/mediagalleries');
-} catch(e) {
+} catch (e) {
   // no-op
 }
 
@@ -51,7 +41,7 @@ var illustrator = {
     comments: 8,
     views: 1,
     crossNetwork: 32,
-    recency: 2
+    recency: 2,
   },
   mediaGallerySize: 15,
   mediaGalleryWidth: 999,
@@ -63,7 +53,7 @@ var illustrator = {
   ctx: null,
   faviconCache: {},
 
-  searchMediaItems: function(searchTerms, wikipediaUrl, callback) {
+  searchMediaItems: function (searchTerms, wikipediaUrl, callback) {
     var mediaItems = {};
     var clusters = [];
     illustrator.canvas = new Canvas(100, 100);
@@ -72,7 +62,7 @@ var illustrator = {
     illustrator.ctx.filter = 'best';
     illustrator.ctx.antialias = 'subpixel';
 
-    var returnSearchResults = function(searchResultsDelivered) {
+    var returnSearchResults = function (searchResultsDelivered) {
       for (var term in searchResultsDelivered) {
         // not all search requests finished yet
         if (searchResultsDelivered[term] === false) {
@@ -81,7 +71,7 @@ var illustrator = {
       }
       // all search requests finished
       // used to only insert unique media items
-      var containsMediaItem = function(source, micropostUrl) {
+      var containsMediaItem = function (source, micropostUrl) {
         for (var i = 0, len = source.length; i < len; i++) {
           if (source[i].micropostUrl === micropostUrl) {
             return true;
@@ -107,19 +97,26 @@ var illustrator = {
           }
         }
       }
-      illustrator.retrieveMediaItems(result, mediaItems, clusters, searchTerms,
-          wikipediaUrl, callback);
+      illustrator.retrieveMediaItems(
+        result,
+        mediaItems,
+        clusters,
+        searchTerms,
+        wikipediaUrl,
+        callback
+      );
     };
 
     var searchResultsDelivered = {};
     /* jshint maxlen:false */
-    var userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.116 Safari/537.36';
-      /* jshint maxlen:80 */
+    var userAgent =
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.116 Safari/537.36';
+    /* jshint maxlen:80 */
     for (var term in searchTerms) {
       // needed to see if all social networks have returned results
       searchResultsDelivered[term] = false;
-      (function(current) {
-        mediaFinder.search('combined', current, userAgent, function(result) {
+      (function (current) {
+        mediaFinder.search('combined', current, userAgent, function (result) {
           var unquotedTerm = current.replace(/^"/, '').replace(/"$/, '');
           searchResultsDelivered[unquotedTerm] = result;
           returnSearchResults(searchResultsDelivered);
@@ -128,9 +125,15 @@ var illustrator = {
     }
   },
 
-  retrieveMediaItems: function(results, mediaItems, clusters, searchTerms,
-      wikipediaUrl, callback) {
-    var checkMediaItemStatuses = function(target) {
+  retrieveMediaItems: function (
+    results,
+    mediaItems,
+    clusters,
+    searchTerms,
+    wikipediaUrl,
+    callback
+  ) {
+    var checkMediaItemStatuses = function (target) {
       for (var key in mediaItems) {
         if (mediaItems[key].status !== target) {
           return false;
@@ -139,8 +142,8 @@ var illustrator = {
       return true;
     };
 
-    var preloadImage = function(src, success, error) {
-      request.get({url: src, encoding: null}, function(err, response, body) {
+    var preloadImage = function (src, success, error) {
+      request.get({ url: src, encoding: null }, function (err, response, body) {
         if (err || response.statusCode !== 200) {
           return error(src);
         }
@@ -148,13 +151,13 @@ var illustrator = {
         try {
           image.src = new Buffer(body, 'binary');
           return success(image);
-        } catch(e) {
+        } catch (e) {
           return error(src);
         }
       });
     };
 
-    var preloadFullImage = function(posterUrl) {
+    var preloadFullImage = function (posterUrl) {
       // for photos, load the media url as full image
       // for videos, load the (already cached) thumbnail as full image
       var mediaUrl = posterUrl;
@@ -162,16 +165,17 @@ var illustrator = {
         mediaUrl = mediaItems[posterUrl].mediaUrl;
       }
       preloadImage(
-          mediaUrl,
-          function(image) {
-            successFullImage(image, posterUrl);
-          },
-          function() {
-            errorFullImage(posterUrl);
-          });
+        mediaUrl,
+        function (image) {
+          successFullImage(image, posterUrl);
+        },
+        function () {
+          errorFullImage(posterUrl);
+        }
+      );
     };
 
-    var successThumbnail = function(image, posterUrl) {
+    var successThumbnail = function (image, posterUrl) {
       if (!illustrator.calculateHistograms(image, posterUrl, mediaItems)) {
         errorThumbnail(posterUrl);
       } else {
@@ -179,38 +183,53 @@ var illustrator = {
       }
     };
 
-    var errorThumbnail = function(posterUrl) {
+    var errorThumbnail = function (posterUrl) {
       delete mediaItems[posterUrl];
       if (checkMediaItemStatuses('loaded')) {
-        illustrator.calculateDistances(mediaItems, clusters, searchTerms,
-            wikipediaUrl, callback);
+        illustrator.calculateDistances(
+          mediaItems,
+          clusters,
+          searchTerms,
+          wikipediaUrl,
+          callback
+        );
       }
     };
 
-    var successFullImage = function(image, posterUrl) {
+    var successFullImage = function (image, posterUrl) {
       mediaItems[posterUrl].status = 'loaded';
       mediaItems[posterUrl].fullImage = {
         width: image.width,
         height: image.height,
-        image: image
+        image: image,
       };
       if (checkMediaItemStatuses('loaded')) {
-        illustrator.calculateDistances(mediaItems, clusters, searchTerms,
-            wikipediaUrl, callback);
+        illustrator.calculateDistances(
+          mediaItems,
+          clusters,
+          searchTerms,
+          wikipediaUrl,
+          callback
+        );
       }
     };
 
-    var errorFullImage = function(posterUrl) {
+    var errorFullImage = function (posterUrl) {
       delete mediaItems[posterUrl];
       if (checkMediaItemStatuses('loaded')) {
-        illustrator.calculateDistances(mediaItems, clusters, searchTerms,
-            wikipediaUrl, callback);
+        illustrator.calculateDistances(
+          mediaItems,
+          clusters,
+          searchTerms,
+          wikipediaUrl,
+          callback
+        );
       }
     };
 
     var numResults = 0;
     for (var service in results) {
-      results[service].forEach(function(item) {
+      results[service].forEach(function (item) {
         numResults++;
         item.origin = service;
         item.status = false;
@@ -220,10 +239,11 @@ var illustrator = {
         // load the poster url as thumbnail
         preloadImage(
           posterUrl,
-          function(image) {
+          function (image) {
             successThumbnail(image, posterUrl);
           },
-          errorThumbnail);
+          errorThumbnail
+        );
       });
     }
     if (numResults === 0) {
@@ -231,15 +251,15 @@ var illustrator = {
     }
   },
 
-  calculateHistograms: function(img, posterUrl, mediaItems) {
+  calculateHistograms: function (img, posterUrl, mediaItems) {
     var canvasWidth = illustrator.canvas.width;
     var canvasHeight = illustrator.canvas.height;
     // clear the canvas
-    illustrator.ctx.clearRect (0, 0, canvasWidth, canvasHeight);
+    illustrator.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     // draw the image on the canvas
     try {
       illustrator.ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
-    } catch(e) {
+    } catch (e) {
       return false;
     }
     // calculate the histograms tile-wise
@@ -251,25 +271,36 @@ var illustrator = {
     for (var i = 0; i < len; i++) {
       // calculate the boundaries for the current tile from the
       // image and translate it to boundaries on the main canvas
-      var mod = (i % illustrator.cols);
+      var mod = i % illustrator.cols;
       var div = ~~(i / illustrator.cols);
       var dx = mod * dw;
       var dy = div * dh;
       // calculate the histogram of the current tile
-      var histogram =
-          Histogram.getHistogram(illustrator.ctx, dx, dy, dw, dh, false);
+      var histogram = Histogram.getHistogram(
+        illustrator.ctx,
+        dx,
+        dy,
+        dw,
+        dh,
+        false
+      );
       mediaItems[posterUrl].tileHistograms[i] = {
         r: histogram.pixel.r,
         g: histogram.pixel.g,
-        b: histogram.pixel.b
+        b: histogram.pixel.b,
       };
     }
     img = null;
     return true;
   },
 
-  calculateDistances: function(mediaItems, clusters, searchTerms, wikipediaUrl,
-      callback) {
+  calculateDistances: function (
+    mediaItems,
+    clusters,
+    searchTerms,
+    wikipediaUrl,
+    callback
+  ) {
     var keys = Object.keys(mediaItems);
     var len = keys.length;
     if (!len) {
@@ -301,11 +332,10 @@ var illustrator = {
         mediaItems[outer].distances[inner] = {};
         // recycle because of symmetry of distances:
         // dist(A<=>B) =  dist(B<=>A)
-        if ((mediaItems[inner].distances) &&
-           (mediaItems[inner].distances[outer])) {
+        if (mediaItems[inner].distances && mediaItems[inner].distances[outer]) {
           mediaItems[outer].distances[inner] =
-              mediaItems[inner].distances[outer];
-        // calculate new
+            mediaItems[inner].distances[outer];
+          // calculate new
         } else {
           for (var k in innerHisto) {
             var innerR = innerHisto[k].r;
@@ -314,22 +344,26 @@ var illustrator = {
             var outerR = outerHisto[k].r;
             var outerG = outerHisto[k].g;
             var outerB = outerHisto[k].b;
-            if ((innerR >= blackTolerance &&
-                innerG >= blackTolerance &&
-                innerB >= blackTolerance) &&
-               (outerR >= blackTolerance &&
-                outerG >= blackTolerance &&
-                outerB >= blackTolerance) &&
-               (innerR <= whiteTolerance &&
-                innerG <= whiteTolerance &&
-                innerB <= whiteTolerance) &&
-               (outerR <= whiteTolerance &&
-                outerG <= whiteTolerance &&
-                outerB <= whiteTolerance)) {
-              mediaItems[outer].distances[inner][k] =
-                  ~~((abs(rFactor * (innerR - outerR)) +
-                      abs(gFactor * (innerG - outerG)) +
-                      abs(bFactor * (innerB - outerB))) / 3);
+            if (
+              innerR >= blackTolerance &&
+              innerG >= blackTolerance &&
+              innerB >= blackTolerance &&
+              outerR >= blackTolerance &&
+              outerG >= blackTolerance &&
+              outerB >= blackTolerance &&
+              innerR <= whiteTolerance &&
+              innerG <= whiteTolerance &&
+              innerB <= whiteTolerance &&
+              outerR <= whiteTolerance &&
+              outerG <= whiteTolerance &&
+              outerB <= whiteTolerance
+            ) {
+              mediaItems[outer].distances[inner][k] = ~~(
+                (abs(rFactor * (innerR - outerR)) +
+                  abs(gFactor * (innerG - outerG)) +
+                  abs(bFactor * (innerB - outerB))) /
+                3
+              );
             } else {
               mediaItems[outer].distances[inner][k] = null;
             }
@@ -337,12 +371,22 @@ var illustrator = {
         }
       }
     }
-    illustrator.filterForMinMaxAgeAndVisibility(mediaItems, clusters,
-        searchTerms, wikipediaUrl, callback);
+    illustrator.filterForMinMaxAgeAndVisibility(
+      mediaItems,
+      clusters,
+      searchTerms,
+      wikipediaUrl,
+      callback
+    );
   },
 
-  filterForMinMaxAgeAndVisibility: function(mediaItems, clusters, searchTerms,
-      wikipediaUrl, callback) {
+  filterForMinMaxAgeAndVisibility: function (
+    mediaItems,
+    clusters,
+    searchTerms,
+    wikipediaUrl,
+    callback
+  ) {
     var now = Date.now();
     for (var key in mediaItems) {
       var mediaItem = mediaItems[key];
@@ -350,25 +394,37 @@ var illustrator = {
         mediaItem.considerMediaItem = true; // was: false
       }
       // perfect
-      else if ((now - mediaItem.timestamp <= illustrator.maxAge) &&
-               (now - mediaItem.timestamp >= illustrator.minAge)) {
+      else if (
+        now - mediaItem.timestamp <= illustrator.maxAge &&
+        now - mediaItem.timestamp >= illustrator.minAge
+      ) {
         mediaItem.considerMediaItem = true;
-      // too old or too young
+        // too old or too young
       } else {
         mediaItem.considerMediaItem = false;
       }
     }
-    illustrator.clusterMediaItems(mediaItems, clusters, searchTerms,
-        wikipediaUrl, callback);
+    illustrator.clusterMediaItems(
+      mediaItems,
+      clusters,
+      searchTerms,
+      wikipediaUrl,
+      callback
+    );
   },
 
-  clusterMediaItems: function(mediaItems, clusters, searchTerms, wikipediaUrl,
-      callback) {
-    var calculateMinimumSimilarTiles = function() {
-      return Math.ceil(illustrator.rows * illustrator.cols / 3);
+  clusterMediaItems: function (
+    mediaItems,
+    clusters,
+    searchTerms,
+    wikipediaUrl,
+    callback
+  ) {
+    var calculateMinimumSimilarTiles = function () {
+      return Math.ceil((illustrator.rows * illustrator.cols) / 3);
     };
     // filter to only consider the, well, considered media items
-    var keys = Object.keys(mediaItems).filter(function(key) {
+    var keys = Object.keys(mediaItems).filter(function (key) {
       return mediaItems[key].considerMediaItem;
     });
     var len = keys.length;
@@ -414,37 +470,49 @@ var illustrator = {
         }
       }
       var members = [];
-      Object.keys(distanceToOuter).sort(function(a, b) {
-        return b - a;
-      }).forEach(function(numSimilarTiles) {
-        distanceToOuter[numSimilarTiles].forEach(function(key) {
-          members.push(keys[key]);
-          keys[key] = false;
+      Object.keys(distanceToOuter)
+        .sort(function (a, b) {
+          return b - a;
+        })
+        .forEach(function (numSimilarTiles) {
+          distanceToOuter[numSimilarTiles].forEach(function (key) {
+            members.push(keys[key]);
+            keys[key] = false;
+          });
         });
-      });
       clusters.push({
         identifier: outer,
-        members: members
+        members: members,
       });
     }
     if (clusters.length === 0) {
       return callback(false);
     }
-    illustrator.mergeClusterData(mediaItems, clusters, searchTerms,
-        wikipediaUrl, callback);
+    illustrator.mergeClusterData(
+      mediaItems,
+      clusters,
+      searchTerms,
+      wikipediaUrl,
+      callback
+    );
   },
 
-  mergeClusterData: function(mediaItems, clusters, searchTerms, wikipediaUrl,
-      callback) {
-    var calculateDimensions = function(mediaItem) {
+  mergeClusterData: function (
+    mediaItems,
+    clusters,
+    searchTerms,
+    wikipediaUrl,
+    callback
+  ) {
+    var calculateDimensions = function (mediaItem) {
       // always prefer video over photo, so set the dimensions of videos
       // to Infinity, which overrules even high-res photos
-      return (mediaItem.type === 'video' ?
-          Infinity :
-          mediaItem.fullImage.width * mediaItem.fullImage.height);
+      return mediaItem.type === 'video'
+        ? Infinity
+        : mediaItem.fullImage.width * mediaItem.fullImage.height;
     };
 
-    clusters.forEach(function(cluster) {
+    clusters.forEach(function (cluster) {
       var mediaItem = mediaItems[cluster.identifier];
       var socialInteractions = mediaItem.socialInteractions;
       var likes = socialInteractions.likes;
@@ -455,12 +523,12 @@ var illustrator = {
         likes: likes,
         shares: shares,
         comments: comments,
-        views: views
+        views: views,
       };
       cluster.timestamp = mediaItem.timestamp;
       var dimensions = calculateDimensions(mediaItem);
 
-      cluster.members.forEach(function(url, i) {
+      cluster.members.forEach(function (url, i) {
         var member = mediaItems[url];
         var memberSocialInteractions = member.socialInteractions;
         likes += memberSocialInteractions.likes;
@@ -484,19 +552,24 @@ var illustrator = {
         likes: likes,
         shares: shares,
         comments: comments,
-        views: views
+        views: views,
       };
     });
-    illustrator.rankClusters(mediaItems, clusters, searchTerms, wikipediaUrl,
-        callback);
+    illustrator.rankClusters(
+      mediaItems,
+      clusters,
+      searchTerms,
+      wikipediaUrl,
+      callback
+    );
   },
 
   rankingFormulas: {
     popularity: {
       name: 'Popularity',
-      func: function(a, b) {
+      func: function (a, b) {
         var now = Date.now();
-        var getAgeFactor = function(timestamp) {
+        var getAgeFactor = function (timestamp) {
           /* 86400000 = 24 * 60 * 60 * 1000 */
           var ageInDays = Math.floor((now - timestamp) / 86400000);
           if (ageInDays <= 1) {
@@ -511,39 +584,56 @@ var illustrator = {
         };
         var weights = illustrator.weights;
         var combinedStatsA =
-            weights.likes * a.statistics.likes +
-            weights.shares * a.statistics.shares +
-            weights.comments * a.statistics.comments +
-            weights.views * a.statistics.views +
-            weights.crossNetwork * a.members.length +
-            weights.recency * getAgeFactor(a.timestamp);
+          weights.likes * a.statistics.likes +
+          weights.shares * a.statistics.shares +
+          weights.comments * a.statistics.comments +
+          weights.views * a.statistics.views +
+          weights.crossNetwork * a.members.length +
+          weights.recency * getAgeFactor(a.timestamp);
         var combinedStatsB =
-            weights.likes * b.statistics.likes +
-            weights.shares * b.statistics.shares +
-            weights.comments * b.statistics.comments +
-            weights.views * b.statistics.views +
-            weights.crossNetwork * b.members.length +
-            weights.recency * getAgeFactor(b.timestamp);
+          weights.likes * b.statistics.likes +
+          weights.shares * b.statistics.shares +
+          weights.comments * b.statistics.comments +
+          weights.views * b.statistics.views +
+          weights.crossNetwork * b.members.length +
+          weights.recency * getAgeFactor(b.timestamp);
         return combinedStatsB - combinedStatsA;
-      }
-    }
+      },
+    },
   },
 
-  rankClusters: function(mediaItems, clusters, searchTerms, wikipediaUrl,
-      callback) {
+  rankClusters: function (
+    mediaItems,
+    clusters,
+    searchTerms,
+    wikipediaUrl,
+    callback
+  ) {
     clusters.sort(illustrator.rankingFormulas.popularity.func);
-    illustrator.createMediaGallery(mediaItems, clusters, 'strictOrder',
-        searchTerms, wikipediaUrl, callback);
+    illustrator.createMediaGallery(
+      mediaItems,
+      clusters,
+      'strictOrder',
+      searchTerms,
+      wikipediaUrl,
+      callback
+    );
     /*
     illustrator.createMediaGallery(mediaItems, clusters, 'looseOrder',
         searchTerms, wikipediaUrl, callback);
     */
   },
 
-  createMediaGallery: function(mediaItems, clusters, algorithm, searchTerms,
-        wikipediaUrl, callback) {
+  createMediaGallery: function (
+    mediaItems,
+    clusters,
+    algorithm,
+    searchTerms,
+    wikipediaUrl,
+    callback
+  ) {
     var selectedMediaItems = [];
-    clusters.forEach(function(cluster, counter) {
+    clusters.forEach(function (cluster, counter) {
       if (counter >= illustrator.mediaGallerySize) {
         return;
       }
@@ -551,16 +641,27 @@ var illustrator = {
       selectedMediaItems.push(mediaItem);
     });
     clusters = null;
-    illustrator.mediaGalleryAlgorithms[algorithm]
-        .func(selectedMediaItems, mediaItems, algorithm, searchTerms,
-            wikipediaUrl, callback);
+    illustrator.mediaGalleryAlgorithms[algorithm].func(
+      selectedMediaItems,
+      mediaItems,
+      algorithm,
+      searchTerms,
+      wikipediaUrl,
+      callback
+    );
   },
 
   mediaGalleryAlgorithms: {
     strictOrder: {
       name: 'Strict order, equal size',
-      func: function(selectedMediaItems, mediaItems, algorithm, searchTerms,
-          wikipediaUrl, callback) {
+      func: function (
+        selectedMediaItems,
+        mediaItems,
+        algorithm,
+        searchTerms,
+        wikipediaUrl,
+        callback
+      ) {
         if (selectedMediaItems.length === 0) {
           return callback(false);
         }
@@ -569,9 +670,9 @@ var illustrator = {
         // image-layout-algorithm-google-plus.html
         var heights = [];
         var margin = illustrator.mediaGalleryMargin;
-        var size = Math.round(illustrator.mediaGalleryWidth * 2/3);
+        var size = Math.round((illustrator.mediaGalleryWidth * 2) / 3);
 
-        var calculateSizes = function(images) {
+        var calculateSizes = function (images) {
           var n = 0;
           /* jshint indent:false */
           w: while (images.length > 0) {
@@ -594,39 +695,43 @@ var illustrator = {
           }
         };
 
-        var getHeight = function(images, width) {
+        var getHeight = function (images, width) {
           width -= images.length * 4;
           var h = 0;
           for (var i = 0, len = images.length; i < len; ++i) {
-            h += (images[i].getAttribute('data-width') /
-                images[i].getAttribute('data-height'));
+            h +=
+              images[i].getAttribute('data-width') /
+              images[i].getAttribute('data-height');
           }
-          return (width / h);
+          return width / h;
         };
 
-        var setHeight = function(images, height) {
+        var setHeight = function (images, height) {
           heights.push(height);
           for (var i = 0, len = images.length; i < len; ++i) {
-            var width = (height * images[i].getAttribute('data-width') /
-                images[i].getAttribute('data-height'));
+            var width =
+              (height * images[i].getAttribute('data-width')) /
+              images[i].getAttribute('data-height');
             images[i].style.width = Math.round(width) + 'px';
             images[i].style.height = Math.round(height) + 'px';
             images[i].firstChild.firstChild.style.width =
-                Math.round(width) + 'px';
+              Math.round(width) + 'px';
             images[i].firstChild.firstChild.style.height =
-                Math.round(height) + 'px';
+              Math.round(height) + 'px';
           }
         };
 
         var fragment = document.createDocumentFragment();
         var divs = [];
-        selectedMediaItems.forEach(function(item) {
+        selectedMediaItems.forEach(function (item) {
           var div = document.createElement('div');
           fragment.appendChild(div);
           div.setAttribute('class', 'mediaItem photoBorder');
           div.setAttribute('data-posterurl', item.posterUrl);
-          div.setAttribute('data-faviconurl',
-              item.origin.toLowerCase() + '.png');
+          div.setAttribute(
+            'data-faviconurl',
+            item.origin.toLowerCase() + '.png'
+          );
           var anchor = document.createElement('a');
           anchor.href = item.micropostUrl;
           anchor.setAttribute('target', '_newtab');
@@ -639,8 +744,9 @@ var illustrator = {
           div.setAttribute('data-width', item.fullImage.width);
           div.setAttribute('data-height', item.fullImage.height);
           div.setAttribute(
-              'style',
-              'position:relative !important; float:left !important;');
+            'style',
+            'position:relative !important; float:left !important;'
+          );
           anchor.appendChild(img);
           div.appendChild(anchor);
           var favicon = document.createElement('img');
@@ -654,14 +760,16 @@ var illustrator = {
         mediaGallery.appendChild(fragment);
         container.appendChild(mediaGallery);
         calculateSizes(divs);
-        var height = heights.reduce(function(a, b) {
+        var height = heights.reduce(function (a, b) {
           return a + b + 2 * margin;
         }, 0);
         mediaGallery.style.height = Math.round(height + 10) + 'px';
         var width = 0;
         for (var i = 0, lenI = divs.length; i < lenI; i++) {
-          var currentWidth =
-              parseInt(divs[i].style.width.replace('px', ''), 10);
+          var currentWidth = parseInt(
+            divs[i].style.width.replace('px', ''),
+            10
+          );
           if (width < size - currentWidth - i * margin) {
             width += currentWidth;
           } else {
@@ -674,17 +782,30 @@ var illustrator = {
         }
         mediaGallery.style.width = width + 'px';
 
-        illustrator.createMediaGalleryDump(mediaItems, divs, width, height,
-            algorithm, searchTerms, wikipediaUrl);
+        illustrator.createMediaGalleryDump(
+          mediaItems,
+          divs,
+          width,
+          height,
+          algorithm,
+          searchTerms,
+          wikipediaUrl
+        );
         selectedMediaItems = null;
         return callback(container.innerHTML);
-      }
+      },
     },
 
     looseOrder: {
       name: 'Loose order, varying size',
-      func: function(selectedMediaItems, mediaItems, algorithm, searchTerms,
-          wikipediaUrl, callback) {
+      func: function (
+        selectedMediaItems,
+        mediaItems,
+        algorithm,
+        searchTerms,
+        wikipediaUrl,
+        callback
+      ) {
         if (selectedMediaItems.length === 0) {
           return callback(false);
         }
@@ -696,13 +817,13 @@ var illustrator = {
         var size = illustrator.mediaGalleryWidth;
         var margin = illustrator.mediaGalleryMargin;
 
-        var createColumns = function(n) {
+        var createColumns = function (n) {
           for (var i = 0; i < n; ++i) {
             heights[i] = 0;
           }
         };
 
-        var getMinColumn = function() {
+        var getMinColumn = function () {
           var minHeight = Infinity;
           var iMin = -1;
           for (var i = 0, len = heights.length; i < len; ++i) {
@@ -714,15 +835,24 @@ var illustrator = {
           return iMin;
         };
 
-        var addColumnDiv = function(i, div, isBig) {
+        var addColumnDiv = function (i, div, isBig) {
           var width = isBig ? columnSize * 2 + margin : columnSize;
           var height = isBig ? columnSize * 2 + margin : columnSize;
-          div.setAttribute('style',
-              'margin-left:' + (margin + (columnSize + margin) * i) + 'px; ' +
-              'margin-top:' + ((columnSize + margin) *
-              heights[Math.floor(i / 2)]) + 'px; ' +
-              'height:' + height + 'px; ' +
-              'width:' + width + 'px;');
+          div.setAttribute(
+            'style',
+            'margin-left:' +
+              (margin + (columnSize + margin) * i) +
+              'px; ' +
+              'margin-top:' +
+              (columnSize + margin) * heights[Math.floor(i / 2)] +
+              'px; ' +
+              'height:' +
+              height +
+              'px; ' +
+              'width:' +
+              width +
+              'px;'
+          );
           var mediaItem = div.firstChild.firstChild;
           var mediaItemWidth = parseInt(mediaItem.width, 10);
           var mediaItemHeight = parseInt(mediaItem.height, 10);
@@ -730,14 +860,14 @@ var illustrator = {
           var min = Math.min(mediaItemHeight, mediaItemWidth);
           if (min === mediaItemWidth) {
             mediaItem.style.width = width + 'px';
-            mediaItem.style.height = (width / aspectRatio) + 'px';
+            mediaItem.style.height = width / aspectRatio + 'px';
           } else {
             mediaItem.style.height = height + 'px';
-            mediaItem.style.width = (height * aspectRatio) + 'px';
+            mediaItem.style.width = height * aspectRatio + 'px';
           }
         };
 
-        var calculateSizes = function(divs) {
+        var calculateSizes = function (divs) {
           var nColumns = Math.floor(size / (2 * (columnSize + margin)));
           createColumns(nColumns);
 
@@ -749,10 +879,11 @@ var illustrator = {
             var posterUrl = div.getAttribute('data-posterurl');
             var mediaItem = mediaItems[posterUrl];
             var resolutionGoodEnough =
-                (mediaItem.fullImage.width * mediaItem.fullImage.height) >
-                (illustrator.mediaItemHeight * illustrator.mediaItemHeight) ?
-                    true : false;
-            var isBig = (Math.random() > 0.7) && (resolutionGoodEnough);
+              mediaItem.fullImage.width * mediaItem.fullImage.height >
+              illustrator.mediaItemHeight * illustrator.mediaItemHeight
+                ? true
+                : false;
+            var isBig = Math.random() > 0.7 && resolutionGoodEnough;
             if (isBig) {
               addColumnDiv(column * 2, div, true);
               heights[column] += 2;
@@ -775,13 +906,15 @@ var illustrator = {
 
         var fragment = document.createDocumentFragment();
         var divs = [];
-        selectedMediaItems.forEach(function(item) {
+        selectedMediaItems.forEach(function (item) {
           var div = document.createElement('div');
           div.setAttribute('class', 'mediaItem photoBorder');
           div.setAttribute('style', 'position:absolute; overflow:hidden;');
           div.setAttribute('data-posterurl', item.posterUrl);
-          div.setAttribute('data-faviconurl',
-              item.origin.toLowerCase() + '.png');
+          div.setAttribute(
+            'data-faviconurl',
+            item.origin.toLowerCase() + '.png'
+          );
 
           var anchor = document.createElement('a');
           anchor.href = item.micropostUrl;
@@ -807,7 +940,7 @@ var illustrator = {
 
         var mediaGallery = document.createElement('div');
         calculateSizes(divs);
-        divs.forEach(function(div) {
+        divs.forEach(function (div) {
           fragment.appendChild(div);
         });
         mediaGallery.appendChild(fragment);
@@ -818,21 +951,35 @@ var illustrator = {
           // no op
         }
         /* jshint noempty:false */
-        var width = 2 * columnIndex * (illustrator.mediaItemHeight + margin) +
-            margin;
+        var width =
+          2 * columnIndex * (illustrator.mediaItemHeight + margin) + margin;
         mediaGallery.style.height = height + 'px';
         var container = document.createElement('div');
         container.appendChild(mediaGallery);
-        illustrator.createMediaGalleryDump(mediaItems, divs, width, height,
-            algorithm, searchTerms, wikipediaUrl);
+        illustrator.createMediaGalleryDump(
+          mediaItems,
+          divs,
+          width,
+          height,
+          algorithm,
+          searchTerms,
+          wikipediaUrl
+        );
         selectedMediaItems = null;
         return callback(container.innerHTML);
-      }
-    }
+      },
+    },
   },
 
-  createMediaGalleryDump: function(mediaItems, divs, width, height, algorithm,
-      searchTerms, wikipediaUrl) {
+  createMediaGalleryDump: function (
+    mediaItems,
+    divs,
+    width,
+    height,
+    algorithm,
+    searchTerms,
+    wikipediaUrl
+  ) {
     var len = divs.length;
     var margin = illustrator.mediaGalleryMargin;
     var fontSize = illustrator.mediaGalleryFontSize;
@@ -852,10 +999,11 @@ var illustrator = {
       var imageHeight = parseInt(parentDiv.style.height.replace('px', ''), 10);
       var dw = imageWidth;
       var dh = imageHeight;
-      var dx = parseInt(parentDiv.style.marginLeft.replace('px', ''), 10) ||
-          marginLeft;
-      var dy = parseInt(parentDiv.style.marginTop.replace('px', ''), 10) ||
-          marginTop;
+      var dx =
+        parseInt(parentDiv.style.marginLeft.replace('px', ''), 10) ||
+        marginLeft;
+      var dy =
+        parseInt(parentDiv.style.marginTop.replace('px', ''), 10) || marginTop;
       var img = mediaItems[posterUrl].fullImage.image;
       if (marginLeft < width - imageWidth - imagesPerRow * margin) {
         marginLeft += imageWidth + margin;
@@ -876,7 +1024,7 @@ var illustrator = {
       }
       try {
         ctx.drawImage(img, 0, 0, sw, sh, dx, dy + margin, dw, dh);
-      } catch(e) {
+      } catch (e) {
         return console.log('Canvas error ' + e);
       }
       img = null;
@@ -890,7 +1038,7 @@ var illustrator = {
       }
       try {
         ctx.drawImage(favicon, dx + 5, dy + margin + 5);
-      } catch(e) {
+      } catch (e) {
         return console.log('Canvas error ' + e);
       }
       favicon = null;
@@ -905,45 +1053,28 @@ var illustrator = {
       var index = i + 1;
       ctx.strokeText(index, dx + 23, dy + margin + 16, dw - 1);
       ctx.fillText(index, dx + 23, dy + margin + 16, dw - 1);
-      ctx.fillText('[' + index + '] Source: ' + micropostUrl, margin,
-          height + 5 * margin + i * (fontSize + 3), width);
+      ctx.fillText(
+        '[' + index + '] Source: ' + micropostUrl,
+        margin,
+        height + 5 * margin + i * (fontSize + 3),
+        width
+      );
     }
-    canvas.toBuffer(function(err, buf) {
-      var fileName = __dirname + '/mediagalleries/mediagallery_' +
-          algorithm + '_' + Object.keys(searchTerms)[0]
-          .replace(/\s/g, '_').replace(/\//g, '_') +
-          '_' + Date.now() + '.png';
-      fs.writeFile(fileName, buf, function(err) {
+    canvas.toBuffer(function (err, buf) {
+      var fileName =
+        __dirname +
+        '/mediagalleries/mediagallery_' +
+        algorithm +
+        '_' +
+        Object.keys(searchTerms)[0].replace(/\s/g, '_').replace(/\//g, '_') +
+        '_' +
+        Date.now() +
+        '.png';
+      fs.writeFile(fileName, buf, function (err) {
         if (err) {
-          return console.log('File write error: "' + fileName + '". Error: ' +
-              err);
-        }
-        if (TWEET_MEDIA_GALLERIES) {
-          // if we have already tweeted the current URL, don't tweet it again
-          if (recentTweetsBuffer.indexOf(wikipediaUrl) !== -1) {
-            console.log('Already tweeted media gallery about ' + wikipediaUrl);
-          } else {
-            // keep the recent tweets buffer at most 10 elements long
-            recentTweetsBuffer.push(wikipediaUrl);
-            if (recentTweetsBuffer.length > 10) {
-              recentTweetsBuffer.shift();
-            }
-            twitterRestClient.statusesUpdateWithMedia({
-                'status': '#BreakingNews candidate via @WikiLiveMon: ' +
-                    wikipediaUrl + '. Media gallery: ',
-                'media[]': fileName.replace(/^~/g, '/Users/tsteiner')
-              },
-              function(error, result) {
-                if (error) {
-                  console.log('Error: ' + (error.code ? error.code + ' ' +
-                      error.message : error.message));
-                }
-                if (result) {
-                  console.log(result);
-                }
-              }
-            );
-          }
+          return console.log(
+            'File write error: "' + fileName + '". Error: ' + err
+          );
         }
         if (!DUMP_MEDIA_GALLERIES) {
           fs.unlink(fileName, function (error) {
@@ -956,7 +1087,7 @@ var illustrator = {
       });
     });
     mediaItems = null;
-  }
+  },
 };
 
 module.exports = illustrator.searchMediaItems;
