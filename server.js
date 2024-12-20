@@ -295,7 +295,6 @@ function monitorWikipedia() {
     if (!WIKIPEDIAS.includes(data.server_name)) {
       return;
     }
-    console.log(JSON.stringify(data, null, 2));
 
     var article = data.title.replace(/\s/g, '_');
     var delta =

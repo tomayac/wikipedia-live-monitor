@@ -124,7 +124,7 @@ function formatLanguages(languagesArray) {
 
 var firstTimeSeen = document.querySelector('#firstTimeSeen');
 function logFirstTimeSeen(data) {
-  if (firstTimeSeen.childNodes.length >= 1) {
+  while (firstTimeSeen.childNodes.length >= 1) {
     firstTimeSeen.removeChild(firstTimeSeen.firstChild);
   }
   firstTimeSeen.innerHTML +=
@@ -143,7 +143,7 @@ function logFirstTimeSeen(data) {
 
 var merging = document.querySelector('#merging');
 function logMerging(data) {
-  if (merging.childNodes.length >= 1) {
+  while (merging.childNodes.length >= 1) {
     merging.removeChild(merging.firstChild);
   }
   merging.innerHTML +=
@@ -384,7 +384,7 @@ function generateLogMessage(data, isBreakingNews) {
 
 var nTimesSeen = document.querySelector('#nTimesSeen');
 function logNTimesSeen(data) {
-  if (nTimesSeen.childNodes.length >= 3) {
+  while (nTimesSeen.childNodes.length >= 3) {
     nTimesSeen.removeChild(nTimesSeen.firstChild);
   }
   if (nTimesSeen.querySelector('.none-yet')) {
@@ -396,7 +396,7 @@ function logNTimesSeen(data) {
 
 var breakingNewsCandidate = document.querySelector('#breakingNewsCandidates');
 function logBreakingNewsCandidate(data) {
-  if (breakingNewsCandidate.childNodes.length >= 3) {
+  while (breakingNewsCandidate.childNodes.length >= 3) {
     breakingNewsCandidate.removeChild(breakingNewsCandidate.firstChild);
   }
   if (breakingNewsCandidate.querySelector('.none-yet')) {
