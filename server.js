@@ -543,6 +543,54 @@ function monitorWikipedia() {
             }
           }
           var wikipediaUrl = createWikipediaUrl(articleVersionsMap[article]);
+
+          io.sockets.emit('breakingNewsCandidate', {
+            article: article,
+            occurrences: articles[article].occurrences,
+            timestamp: new Date(articles[article].timestamp).toString(),
+            editIntervals: articles[article].intervals,
+            editors: articles[article].editors,
+            languages: articles[article].languages,
+            versions: articles[article].versions,
+            changes: articles[article].changes,
+            conditions: {
+              breakingNewsThreshold:
+                breakingNewsConditions.breakingNewsThresholdReached,
+              secondsBetweenEdits:
+                breakingNewsConditions.allEditsInShortDistances,
+              numberOfConcurrentEditors:
+                breakingNewsConditions.numberOfEditorsReached,
+            },
+            mediaGalleryHtml: '',
+            socialNetworksResults: '',
+          });
+          // reporting console
+          if (VERBOUS) {
+            console.log(
+              '[ ★ ] Breaking news candidate: "' +
+                article +
+                '". ' +
+                articles[article].occurrences +
+                ' ' +
+                'times seen. ' +
+                'Timestamp: ' +
+                new Date(articles[article].timestamp) +
+                '. Edit intervals: ' +
+                articles[article].intervals
+                  .toString()
+                  .replace(/(\d+),?/g, '$1ms ')
+                  .trim() +
+                '. ' +
+                'Number of editors: ' +
+                articles[article].editors.length +
+                '. ' +
+                'Editors: ' +
+                articles[article].editors +
+                '. ' +
+                'Languages: ' +
+                JSON.stringify(articles[article].languages)
+            );
+          }
           /*
           illustrator(searchTerms, wikipediaUrl, function(mediaGalleryHtml) {
             socialNetworkSearch(searchTerms, function(socialNetworksResults) {
@@ -1095,7 +1143,7 @@ function email(article, wikipediaUrl, microposts) {
 // and set default route to index.html
 app.use(express.static(__dirname + '/static'));
 app.get('/', function (req, res) {
-  res.sendfile(__dirname + '/index.html');
+  res.sendFile(__dirname + '/index.html');
 });
 
 // start garbage collector
