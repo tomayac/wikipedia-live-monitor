@@ -2,9 +2,9 @@
 
 /* jshint maxlen:false */
 /*
-  @author: remy sharp / http://remysharp.com
-  @url: http://remysharp.com/2008/04/01/wiki-to-html-using-javascript/
-  @license: Creative Commons License - ShareAlike http://creativecommons.org/licenses/by-sa/3.0/
+  @author: remy sharp / https://remysharp.com
+  @url: https://remysharp.com/2008/04/01/wiki-to-html-using-javascript/
+  @license: Creative Commons License - ShareAlike https://creativecommons.org/licenses/by-sa/3.0/
   @version: 1.0
 
   Can extend String or be used stand alone - just change the flag at the top of the script.

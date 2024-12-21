@@ -666,7 +666,7 @@ var illustrator = {
           return callback(false);
         }
         // media gallery algorithm credits to
-        // http://blog.vjeux.com/2012/image/-
+        // https://blog.vjeux.com/2012/image/-
         // image-layout-algorithm-google-plus.html
         var heights = [];
         var margin = illustrator.mediaGalleryMargin;
@@ -810,7 +810,7 @@ var illustrator = {
           return callback(false);
         }
         // media gallery algorithm credits to
-        // http://blog.vjeux.com/2012/image/-
+        // https://blog.vjeux.com/2012/image/-
         // image-layout-algorithm-facebook.html
         var heights = [];
         var columnSize = illustrator.mediaItemHeight;

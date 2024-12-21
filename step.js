@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-// Inspired by http://github.com/willconant/flow-js, but reimplemented and
+// Inspired by https://github.com/willconant/flow-js, but reimplemented and
 // modified to fit my taste and the node.JS error handling system.
 function Step() {
   var steps = Array.prototype.slice.call(arguments),

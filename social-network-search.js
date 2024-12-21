@@ -160,7 +160,7 @@ var socialNetworkSearch = function (terms, callback) {
         }
         // Facebook does not support phrase search, so we manually need to test
         // if the serch term is contained.
-        // (http://support.gnip.com/sources/facebook.html#Streams)
+        // (https://support.gnip.com/sources/facebook.html#Streams)
         if (micropost.indexOf(term) === -1) {
           return;
         }

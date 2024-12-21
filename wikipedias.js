@@ -2,8 +2,8 @@
 
 // IRC rooms are of the form #lang.wikipedia
 // the list of languages is here:
-// http://meta.wikimedia.org/wiki/List_of_Wikipedias#All_Wikipedias_ordered_by_number_of_articles
-// http://meta.wikimedia.org/wiki/List_of_Wikipedias#1_000_000.2B_articles
+// https://meta.wikimedia.org/wiki/List_of_Wikipedias#All_Wikipedias_ordered_by_number_of_articles
+// https://meta.wikimedia.org/wiki/List_of_Wikipedias#1_000_000.2B_articles
 var millionPlusLanguages = {
   en: true,
   de: true,
@@ -14,7 +14,7 @@ var millionPlusLanguages = {
   ru: true,
 };
 
-// http://meta.wikimedia.org/wiki/List_of_Wikipedias#100_000.2B_articles
+// https://meta.wikimedia.org/wiki/List_of_Wikipedias#100_000.2B_articles
 var oneHundredThousandPlusLanguages = {
   sv: true,
   pl: true,

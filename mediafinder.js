@@ -36,7 +36,7 @@ var GLOBAL_config = {
       'q=0.2,es;q=0.2,ca;q=0.2',
     Connection: 'keep-alive',
     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    Referer: 'http://www.google.com/',
+    Referer: 'https://www.google.com/',
     'User-Agent': null,
   },
   MEDIA_PLATFORMS: [
@@ -143,10 +143,10 @@ var mediaFinder = {
       };
 
       // Possible URL patterns
-      // http://www.youtube.com/v/WnszesKUXp8
-      // http://www.youtube.com/watch?v=EVBsypHzF3U
-      // http://www.youtube.com/watch?v=-qzRe325AQU&feature=youtube_gdata_player
-      // http://youtu.be/EVBsypHzF3U
+      // https://www.youtube.com/v/WnszesKUXp8
+      // https://www.youtube.com/watch?v=EVBsypHzF3U
+      // https://www.youtube.com/watch?v=-qzRe325AQU&feature=youtube_gdata_player
+      // https://youtu.be/EVBsypHzF3U
       var extractYouTubeVideoId = function (url) {
         var urlObj = URL.parse(url);
         var pathComponents = urlObj.pathname.split(/\//g);
@@ -169,9 +169,9 @@ var mediaFinder = {
 
       // if is YouTube URL
       if (
-        url.indexOf('http://www.youtube.com') === 0 ||
         url.indexOf('https://www.youtube.com') === 0 ||
-        url.indexOf('http://youtu.be') === 0
+        url.indexOf('https://www.youtube.com') === 0 ||
+        url.indexOf('https://youtu.be') === 0
       ) {
         try {
           var videoId = extractYouTubeVideoId(url);
@@ -180,7 +180,7 @@ var mediaFinder = {
             headers: {
               'User-Agent': GLOBAL_config.HEADERS['User-Agent'],
             },
-            url: 'http://www.youtube.com/get_video_info?video_id=' + videoId,
+            url: 'https://www.youtube.com/get_video_info?video_id=' + videoId,
           };
           request.get(options, function (err, reply, body) {
             var video;
@@ -463,17 +463,17 @@ var mediaFinder = {
                 options.headers['Content-Type'] =
                   'application/x-www-form-urlencoded; charset=UTF-8';
                 // non-testing env:
-                // 'http://spotlight.dbpedia.org/rest/annotate';
-                options.url = 'http://spotlight.dbpedia.org/dev/rest/annotate';
+                // 'https://spotlight.dbpedia.org/rest/annotate';
+                options.url = 'https://spotlight.dbpedia.org/dev/rest/annotate';
                 options.body =
                   'text=' +
                   encodeURIComponent(text) +
                   '&confidence=0.2&support=20';
               } else {
                 // non-testing env:
-                // 'http://spotlight.dbpedia.org/rest/annotate' +
+                // 'https://spotlight.dbpedia.org/rest/annotate' +
                 options.url =
-                  'http://spotlight.dbpedia.org/dev/rest/annotate' +
+                  'https://spotlight.dbpedia.org/dev/rest/annotate' +
                   '?text=' +
                   encodeURIComponent(text) +
                   '&confidence=0.2&support=20';
@@ -595,7 +595,7 @@ var mediaFinder = {
                 GLOBAL_config.GOOGLE_RESEARCH_API_KEY
           },
           method: 'POST',
-          url: 'http://translate.google.com/researchapi/translate',
+          url: 'https://translate.google.com/researchapi/translate',
           body: 'tl=en'
         };
         */
@@ -917,7 +917,7 @@ var mediaFinder = {
                       : '';
                     // Facebook does not support phrase search, so we manually
                     // need to test if the serch term is contained.
-                    // (http://support.gnip.com/sources/facebook.html#Streams)
+                    // (https://support.gnip.com/sources/facebook.html#Streams)
                     if (
                       micropost
                         .toLowerCase()
@@ -1094,7 +1094,7 @@ var mediaFinder = {
         };
         params = querystring.stringify(params);
         var options = {
-          url: 'http://gdata.youtube.com/feeds/api/videos?' + params,
+          url: 'https://gdata.youtube.com/feeds/api/videos?' + params,
           headers: GLOBAL_config.HEADERS,
         };
         if (GLOBAL_config.DEBUG) {
@@ -1126,7 +1126,7 @@ var mediaFinder = {
                             item.title + '. ' + item.description
                           ),
                           userProfileUrl:
-                            'http://www.youtube.com/' + item.uploader,
+                            'https://www.youtube.com/' + item.uploader,
                           type: 'video',
                           timestamp: timestamp,
                           publicationDate: getIsoDateString(timestamp),
@@ -1386,7 +1386,7 @@ var mediaFinder = {
         };
         params = querystring.stringify(params);
         var options = {
-          url: 'http://api.mobypicture.com/?' + params,
+          url: 'https://api.mobypicture.com/?' + params,
           headers: GLOBAL_config.HEADERS,
         };
         if (GLOBAL_config.DEBUG) {
@@ -1412,7 +1412,7 @@ var mediaFinder = {
                     };
                     params = querystring.stringify(params);
                     options = {
-                      url: 'http://api.mobypicture.com/?' + params,
+                      url: 'https://api.mobypicture.com/?' + params,
                       headers: GLOBAL_config.HEADERS,
                     };
                     request.get(options, function (err, reply, body2) {
@@ -1436,7 +1436,7 @@ var mediaFinder = {
                         };
                         params = querystring.stringify(params);
                         options = {
-                          url: 'http://api.mobypicture.com/?' + params,
+                          url: 'https://api.mobypicture.com/?' + params,
                           headers: GLOBAL_config.HEADERS,
                         };
                         request.get(options, function (err, reply, body3) {
@@ -1492,7 +1492,7 @@ var mediaFinder = {
         params = querystring.stringify(params);
         var headers = GLOBAL_config.HEADERS;
         var options = {
-          url: 'http://api.twitpic.com/2/tags/show.json?' + params,
+          url: 'https://api.twitpic.com/2/tags/show.json?' + params,
           headers: headers,
         };
         if (GLOBAL_config.DEBUG) {
@@ -1509,11 +1509,12 @@ var mediaFinder = {
                   for (var i = 0, len = body.images.length; i < len; i++) {
                     (function (image) {
                       var userProfileUrl =
-                        'http://twitpic.com/photos/' + image.user.username;
+                        'https://twitpic.com/photos/' + image.user.username;
                       var micropost = image.message;
                       var timestamp = new Date(image.timestamp).getTime();
                       var publicationDate = getIsoDateString(timestamp);
-                      var micropostUrl = 'http://twitpic.com/' + image.short_id;
+                      var micropostUrl =
+                        'https://twitpic.com/' + image.short_id;
                       var views = parseInt(image.views, 10);
                       var comments = parseInt(image.number_of_comments, 10);
                       var cb = group();
@@ -1528,7 +1529,8 @@ var mediaFinder = {
                           results.push({
                             mediaUrl: mediaUrl,
                             posterUrl:
-                              'http://twitpic.com/show/thumb/' + image.short_id,
+                              'https://twitpic.com/show/thumb/' +
+                              image.short_id,
                             micropostUrl: micropostUrl,
                             micropost: cleanMicropost(micropost),
                             userProfileUrl: userProfileUrl,

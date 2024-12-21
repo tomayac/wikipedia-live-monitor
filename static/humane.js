@@ -4,9 +4,9 @@
  * Re-write by Zach Leatherman (zachleat.com)
  *
  * Adopted from the John Resig's pretty.js
- * at http://ejohn.org/blog/javascript-pretty-date
+ * at https://ejohn.org/blog/javascript-pretty-date
  * and henrah's proposed modification
- * at http://ejohn.org/blog/javascript-pretty-date/#comment-297458
+ * at https://ejohn.org/blog/javascript-pretty-date/#comment-297458
  *
  * Licensed under the MIT license.
  */

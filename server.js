@@ -136,104 +136,6 @@ var articles = {};
 var articleClusters = {};
 var articleVersionsMap = {};
 
-function parseMessage(message, to) {
-  // get the editor's username or IP address
-  // the IRC log format is as follows (with color codes removed):
-  // rc-pmtpa: [[Juniata River]] http://en.wikipedia.org/w/index.php?diff=
-  // 516269072&oldid=514659029 * Johanna-Hypatia * (+67) Category:Place names
-  // of Native American origin in Pennsylvania
-  var messageComponents = message.split(' * ');
-  var articleRegExp = /\[\[(.+?)\]\].+?$/;
-  var article = messageComponents[0].replace(articleRegExp, '$1');
-  // discard non-article namespaces, as listed here:
-  // http://www.mediawiki.org/wiki/Help:Namespaces
-  // this means only listening to messages without a ':' essentially
-  if (article.indexOf(':') !== -1) {
-    return false;
-  }
-  var editor = messageComponents[1];
-  // discard edits made by bots.
-  // bots are identified by a B flag, as documented here
-  // http://www.mediawiki.org/wiki/Help:Tracking_changes
-  // (the 'b' is actually uppercase in IRC)
-  //
-  // bots must identify themselves by prefixing or suffixing their
-  // username with 'bot'.
-  // http://en.wikipedia.org/wiki/Wikipedia:Bot_policy#Bot_accounts
-  var flagsAndDiffUrl = messageComponents[0]
-    .replace('[[' + article + ']] ', '')
-    .split(' ');
-  var flags = flagsAndDiffUrl[0];
-  if (DISCARD_WIKIPEDIA_BOTS) {
-    if (/B/.test(flags) || /\bbot/i.test(editor) || /bot\b/i.test(editor)) {
-      return;
-    }
-  }
-  // normalize article titles to follow the Wikipedia URLs
-  article = article.replace(/\s/g, '_');
-  // the language format follows the IRC room format: '#language.project'
-  var language = to.substring(1, to.indexOf('.'));
-  editor = language + ':' + editor;
-  // diff URL
-  var diffUrl = flagsAndDiffUrl[1];
-  if (
-    diffUrl &&
-    diffUrl.indexOf('diff') !== -1 &&
-    diffUrl.indexOf('oldid') !== -1
-  ) {
-    var toRev = diffUrl.replace(/.*\?diff=(\d+).*/, '$1');
-    var fromRev = diffUrl.replace(/.*&oldid=(\d+).*/, '$1');
-    if (language === 'wikidata') {
-      diffUrl =
-        'http://wikidata.org/w/api.php?action=compare&torev=' +
-        toRev +
-        '&fromrev=' +
-        fromRev +
-        '&format=json';
-    } else {
-      diffUrl =
-        'http://' +
-        language +
-        '.wikipedia.org/w/api.php?action=compare&torev=' +
-        toRev +
-        '&fromrev=' +
-        fromRev +
-        '&format=json';
-    }
-  } else {
-    diffUrl = '';
-  }
-  // delta
-  var deltaAndCommentRegExp = /\(([+-]\d+)\)\s(.*?)$/;
-  var delta = messageComponents[2].replace(deltaAndCommentRegExp, '$1');
-  // comment
-  var comment = messageComponents[2].replace(deltaAndCommentRegExp, '$2');
-  // language cluster URL
-  var languageClusterUrl;
-  if (language === 'wikidata') {
-    languageClusterUrl =
-      'http://www.wikidata.org/w/api.php?' +
-      'action=wbgetentities&props=sitelinks&format=json&ids=' +
-      encodeURIComponent(article);
-  } else {
-    languageClusterUrl =
-      'http://' +
-      language +
-      '.wikipedia.org/w/api.php?action=query&prop=langlinks' +
-      '&format=json&lllimit=500&titles=' +
-      encodeURIComponent(article);
-  }
-  return {
-    article: article,
-    editor: editor,
-    language: language,
-    delta: delta,
-    comment: comment,
-    diffUrl: diffUrl,
-    languageClusterUrl: languageClusterUrl,
-  };
-}
-
 function checkBreakingNewsConditions(article) {
   // (1) breaking news threshold
   var breakingNewsThresholdReached =
@@ -312,12 +214,12 @@ function monitorWikipedia() {
       encodeURIComponent(article);
     var diffUrl =
       language === 'wikidata'
-        ? 'http://wikidata.org/w/api.php?action=compare&torev=' +
+        ? 'https://wikidata.org/w/api.php?action=compare&torev=' +
           data.revision.new +
           '&fromrev=' +
           data.revision.old +
           '&format=json'
-        : 'http://' +
+        : 'https://' +
           language +
           '.wikipedia.org/w/api.php?action=compare&torev=' +
           data.revision.new +
@@ -340,11 +242,11 @@ function monitorWikipedia() {
 
     // TODO
     // get out-links to other articles mentioned in the current article
-    // http://en.wikipedia.org/w/api.php?action=query&prop=links&pllimit=500&format=json&titles=
+    // https://en.wikipedia.org/w/api.php?action=query&prop=links&pllimit=500&format=json&titles=
 
     // TODO
     // get in-links to the current article
-    // http://en.wikipedia.org/w/api.php?action=query&list=backlinks&bllimit=500&format=json&bltitle=
+    // https://en.wikipedia.org/w/api.php?action=query&list=backlinks&bllimit=500&format=json&bltitle=
 
     // get the diff URL and check if we have notable or trivial changes
     if (diffUrl) {
@@ -912,14 +814,14 @@ function createWikipediaUrl(article) {
   var components = article.split(':');
   if (components[0] === 'wikidata') {
     return (
-      'http://' +
+      'https://' +
       components[0] +
       '.org/wiki/' +
       encodeURIComponent(components[1])
     );
   } else {
     return (
-      'http://' +
+      'https://' +
       components[0] +
       '.wikipedia.org/wiki/' +
       encodeURIComponent(components[1])
@@ -941,12 +843,12 @@ function email(article, wikipediaUrl, microposts) {
 
   var generateHtmlMail = function () {
     var preg_quote = function (str, delimiter) {
-      // http://kevin.vanzonneveld.net
+      // https://kevin.vanzonneveld.net
       // +   original by: booeyOH
-      // +   improved by: Ates Goral (http://magnetiq.com)
-      // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+      // +   improved by: Ates Goral (https://magnetiq.com)
+      // +   improved by: Kevin van Zonneveld (https://kevin.vanzonneveld.net)
       // +   bugfixed by: Onno Marsman
-      // +   improved by: Brett Zamir (http://brett-zamir.me)
+      // +   improved by: Brett Zamir (https://brett-zamir.me)
       // *     example 1: preg_quote("$40");
       // *     returns 1: '\$40'
       // *     example 2: preg_quote("*RRRING* Hello?");
@@ -963,7 +865,7 @@ function email(article, wikipediaUrl, microposts) {
     };
 
     // converts a user name like en:Jon_Doe to a valid Wikipedia user profile
-    // link like so: http://en.wikipedia.org/wiki/User:Jon_Doe. Ignore
+    // link like so: https://en.wikipedia.org/wiki/User:Jon_Doe. Ignore
     // anonymous users
     var linkifyEditor = function (user) {
       var components = user.split(':');
@@ -974,7 +876,7 @@ function email(article, wikipediaUrl, microposts) {
         return '<a class="user">' + components[1] + '</a>';
       }
       return (
-        '<a class="user" href="http://' +
+        '<a class="user" href="https://' +
         components[0].replace(/(\w+),.*/, '$1') +
         '.wikipedia.org/wiki/User:' +
         components[1] +

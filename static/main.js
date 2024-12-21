@@ -41,7 +41,7 @@ reset.addEventListener(
 );
 
 // converts an article like en:Albert_Einstein to a valid Wikipedia link
-// like so: http://en.wikipedia.org/wiki/Albert_Einstein
+// like so: https://en.wikipedia.org/wiki/Albert_Einstein
 function linkifyTitle(text) {
   var components = text.split(':');
   if (components[0] === 'wikidata') {
@@ -49,7 +49,7 @@ function linkifyTitle(text) {
       '<nobr><img src="' +
       components[0] +
       '.png" width="16" height="11"> ' +
-      '<a class="title" href="http://' +
+      '<a class="title" href="https://' +
       components[0] +
       '.org/wiki/' +
       encodeURIComponent(components[1]) +
@@ -62,7 +62,7 @@ function linkifyTitle(text) {
       '<nobr><img src="' +
       components[0] +
       '.png" width="16" height="11"> ' +
-      '<a class="title" href="http://' +
+      '<a class="title" href="https://' +
       components[0] +
       '.wikipedia.org/wiki/' +
       encodeURIComponent(components[1]) +
@@ -74,7 +74,7 @@ function linkifyTitle(text) {
 }
 
 // converts a user name like en:Jon_Doe to a valid Wikipedia user profile
-// link like so: http://en.wikipedia.org/wiki/User:Jon_Doe. Ignore
+// link like so: https://en.wikipedia.org/wiki/User:Jon_Doe. Ignore
 // anonymous users
 function linkifyEditor(user) {
   var components = user.split(':');
@@ -95,7 +95,7 @@ function linkifyEditor(user) {
     );
   }
   return (
-    '<a class="user" href="http://' +
+    '<a class="user" href="https://' +
     components[0].replace(/(\w+),.*/, '$1') +
     '.wikipedia.org/wiki/User:' +
     components[1] +
@@ -163,12 +163,12 @@ function logMerging(data) {
 }
 
 function preg_quote(str, delimiter) {
-  // http://kevin.vanzonneveld.net
+  // https://kevin.vanzonneveld.net
   // +   original by: booeyOH
-  // +   improved by: Ates Goral (http://magnetiq.com)
-  // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+  // +   improved by: Ates Goral (https://magnetiq.com)
+  // +   improved by: Kevin van Zonneveld (https://kevin.vanzonneveld.net)
   // +   bugfixed by: Onno Marsman
-  // +   improved by: Brett Zamir (http://brett-zamir.me)
+  // +   improved by: Brett Zamir (https://brett-zamir.me)
   // *     example 1: preg_quote("$40");
   // *     returns 1: '\$40'
   // *     example 2: preg_quote("*RRRING* Hello?");
